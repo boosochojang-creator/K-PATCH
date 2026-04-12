@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-PATCH 2.0 Tactical Drill</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  </head>
+  <body>
+    <main id="app">
+      <section id="introScreen" class="screen active">
+        <div class="video-bg">
+          <iframe
+            id="introVideo"
+            src="https://www.youtube.com/embed/5mZ_6_zO2fM?autoplay=1&mute=1&controls=0&loop=1&playlist=5mZ_6_zO2fM&enablejsapi=1"
+            title="K-PATCH Intro Video"
+            allow="autoplay; encrypted-media"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+        <div class="intro-overlay"></div>
+        <div class="intro-content">
+          <h1>OPERATION K-PATCH 2.0</h1>
+          <p>95발 전술 탄알로 REAL Korean을 장악하라.</p>
+          <button id="battleStartBtn" class="btn primary">BATTLE START</button>
+          <p id="introNotice" class="small muted">
+            클릭 시 환대 사운드/음성/진동이 즉시 작동합니다.
+          </p>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen">
+        <header class="hud">
+          <div>
+            <h2 id="rankLabel">훈련병</h2>
+            <p id="themeLabel" class="small">Rural Korea</p>
+          </div>
+          <div class="progress-wrap">
+            <span id="progressText">1 / 95</span>
+            <div class="progress-bar">
+              <div id="progressFill"></div>
+            </div>
+          </div>
+        </header>
+
+        <section class="stage-layout">
+          <article class="quiz-panel glass">
+            <p id="questionId" class="small">AMMO #1</p>
+            <h3 id="questionText">문항 로딩 중...</h3>
+            <div id="options"></div>
+            <div id="feedbackText" aria-live="polite"></div>
+            <button id="nextBtn" class="btn" disabled>다음 탄알</button>
+          </article>
+
+          <aside class="video-panel glass">
+            <h4>전술 비디오 슬롯</h4>
+            <div id="videoSlot"></div>
+          </aside>
+        </section>
+      </section>
+    </main>
+
+    <div id="surveyModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>전술 설문조사</h3>
+        <p class="small">15단계 완료. 다음 단계 진입 전 필수 응답입니다.</p>
+        <form id="surveyForm">
+          <label>
+            성별
+            <select id="surveyGender" name="surveyGender" required>
+              <option value="">선택</option>
+              <option>여성</option>
+              <option>남성</option>
+              <option>논바이너리</option>
+              <option>응답하지 않음</option>
+            </select>
+          </label>
+          <label>
+            국가
+            <input id="surveyCountry" name="surveyCountry" type="text" required placeholder="예: 대한민국" />
+          </label>
+          <label>
+            목적
+            <input id="surveyPurpose" name="surveyPurpose" type="text" required placeholder="예: 한국어 회화 실전" />
+          </label>
+          <button class="btn primary" type="submit">응답 제출</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="subscribeModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>전술 인터럽트: 유튜브 구독</h3>
+        <p>60단계 진입 전 필수 절차입니다. 채널 방문 후 아래 버튼으로 진행하세요.</p>
+        <div class="row">
+          <a class="btn primary" id="subscribeLink" href="https://www.youtube.com/@KPATCH" target="_blank" rel="noreferrer">
+            채널 열기
+          </a>
+          <button class="btn" id="confirmSubscribeBtn">구독 완료, 계속 진행</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="dogTagModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>Dog Tag 인증 카드 발급 완료</h3>
+        <p id="dogTagStageText" class="small"></p>
+        <div id="dogTagPreviewWrap"></div>
+        <div class="row">
+          <a id="dogTagDownload" class="btn primary" download="k-patch-dogtag.png">PNG 다운로드</a>
+          <button class="btn" id="closeDogTagBtn">작전 계속</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="dogTagCard" class="dogtag-card" aria-hidden="true">
+      <div class="dogtag-overlay">
+        <h4>K-PATCH DOG TAG</h4>
+        <p id="dogTagName">CALLSIGN: SOL</p>
+        <p id="dogTagCheckpoint">CHECKPOINT: 40</p>
+        <p id="dogTagTimestamp"></p>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
