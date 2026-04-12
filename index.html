@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K-PATCH 2.0 Final Integration Deathmatch</title>
+  <style>
+    :root {
+      --bg: #060606;
+      --panel: rgba(10, 10, 10, 0.78);
+      --gold: #d8af4f;
+      --gold-strong: #ffd369;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --danger: #ff5f5f;
+      --success: #50e3a4;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans KR", "Pretendard", system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .bg-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background: radial-gradient(circle at 25% 20%, #1d1504, #040404 70%);
+    }
+
+    #bgVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+      filter: saturate(1.1) contrast(1.12) brightness(0.62);
+    }
+
+    #fallbackImage {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.55;
+    }
+
+    .scanline {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.015) 0px,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+    }
+
+    .container {
+      width: min(980px, 92vw);
+      margin: 0 auto;
+      padding: 20px 0 48px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(216, 175, 79, 0.4);
+      box-shadow: 0 0 0 1px rgba(216, 175, 79, 0.2) inset, 0 16px 40px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+    }
+
+    .start-screen {
+      margin-top: min(18vh, 140px);
+      padding: 28px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(1.3rem, 2.8vw, 2.2rem);
+      margin: 0 0 8px;
+      color: var(--gold-strong);
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .btn {
+      border: 1px solid rgba(216, 175, 79, 0.72);
+      background: linear-gradient(180deg, #2c2108, #120f07);
+      color: #fff8ea;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border-radius: 12px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(216, 175, 79, 0.22);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .hud {
+      padding: 16px;
+      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .badge {
+      justify-self: end;
+      border: 1px solid rgba(216, 175, 79, 0.55);
+      color: var(--gold-strong);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .progress-wrap {
+      grid-column: 1 / -1;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #7f6226, #e2b95b);
+      transition: width 0.3s ease;
+    }
+
+    .stage-card {
+      padding: 22px;
+    }
+
+    .stage {
+      margin: 0 0 4px;
+      color: var(--gold-strong);
+      font-weight: 700;
+      font-size: 0.96rem;
+    }
+
+    .scenario {
+      margin: 8px 0 18px;
+      font-size: clamp(1rem, 2.1vw, 1.2rem);
+      line-height: 1.55;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(0, 0, 0, 0.36);
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+      transition: border-color 0.18s ease, background 0.18s ease;
+      font-weight: 600;
+    }
+
+    .option:hover { border-color: rgba(216, 175, 79, 0.68); }
+    .option.selected {
+      border-color: var(--gold-strong);
+      background: rgba(216, 175, 79, 0.14);
+    }
+
+    .feedback {
+      min-height: 28px;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+
+    .feedback.ok { color: var(--success); }
+    .feedback.no { color: var(--danger); }
+
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .survey-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 20;
+    }
+
+    .survey-card {
+      width: min(640px, 100%);
+      padding: 22px;
+    }
+
+    .q {
+      margin: 12px 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .q label {
+      display: block;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .result-screen {
+      display: none;
+      margin-top: 26px;
+      padding: 24px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 6px 0 14px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 700px) {
+      .hud {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .badge {
+        justify-self: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-wrap">
+    <video id="bgVideo" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <source src="https://cdn.coverr.co/videos/coverr-futuristic-data-center-1579/1080p.mp4" type="video/mp4">
+    </video>
+    <div id="fallbackImage"></div>
+  </div>
+  <div class="scanline"></div>
+
+  <main class="container">
+    <section id="startScreen" class="panel start-screen">
+      <h1>K-PATCH 2.0 Final Integration Deathmatch</h1>
+      <p class="subtitle">
+        95개 실전 감정 시나리오 돌입. 지휘관 의도와 아렌 전략을 해석하여
+        전황을 돌파하라. 모바일 완전 기동 모드 포함.
+      </p>
+      <button id="startBtn" class="btn">BATTLE START</button>
+    </section>
+
+    <section id="gameScreen" class="hidden">
+      <header class="panel hud">
+        <div id="stageInfo">STAGE 1 / 95</div>
+        <div id="scoreInfo">SCORE 0</div>
+        <div id="rankInfo" class="badge">훈련병</div>
+        <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+      </header>
+
+      <section class="panel stage-card">
+        <p id="stageText" class="stage"></p>
+        <p id="scenarioText" class="scenario"></p>
+        <div id="optionsBox" class="options"></div>
+        <div id="feedback" class="feedback"></div>
+        <div class="actions">
+          <button id="submitBtn" class="btn">판정</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="resultScreen" class="panel result-screen">
+      <h2 style="margin-top:0;color:var(--gold-strong);">MISSION COMPLETE</h2>
+      <p id="resultSummary" class="meta"></p>
+      <p id="dispatchStatus" class="meta"></p>
+      <div class="actions">
+        <button id="dispatchBtn" class="btn">전략 리포트 발신</button>
+        <button id="restartBtn" class="btn">재도전</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="surveyModal" class="survey-modal">
+    <form id="surveyForm" class="panel survey-card">
+      <h3 id="surveyTitle" style="margin-top:0;color:var(--gold-strong);">전략 설문</h3>
+      <div class="q">
+        <strong>Q1. 현재 최우선 전술은?</strong>
+        <label><input type="radio" name="priority" value="안정성" required> 안정성 확보</label>
+        <label><input type="radio" name="priority" value="속도"> 빠른 전개</label>
+        <label><input type="radio" name="priority" value="확장성"> 확장성 준비</label>
+        <label><input type="radio" name="priority" value="수익성"> 수익성 극대화</label>
+      </div>
+      <div class="q">
+        <strong>Q2. 팀 사기 상태는?</strong>
+        <label><input type="radio" name="morale" value="낮음" required> 낮음</label>
+        <label><input type="radio" name="morale" value="보통"> 보통</label>
+        <label><input type="radio" name="morale" value="높음"> 높음</label>
+      </div>
+      <div class="q">
+        <strong>Q3. 아렌 전략 적합도 (1~5)</strong>
+        <input name="fit" type="range" min="1" max="5" value="3" />
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn">설문 전송 후 전진</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const fallbackSvg = encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'>
+        <defs>
+          <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0' stop-color='#040404'/>
+            <stop offset='1' stop-color='#1a1204'/>
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#g)'/>
+        <g stroke='#d8af4f' opacity='0.33'>
+          <path d='M0 200h1600M0 420h1600M0 640h1600' />
+          <path d='M180 0v900M780 0v900M1380 0v900' />
+        </g>
+        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#d8af4f' font-size='54' font-family='Arial'>TECHNICAL BACKUP MODE</text>
+      </svg>`
+    );
+
+    const emotionPool = [
+      "헐", "대박", "어이없어", "멘붕", "빡친다", "감동", "눈물난다", "소름", "웃겨죽겠네",
+      "현타온다", "찢었다", "킹받네", "심쿵", "당황", "든든하다", "불안하다", "속상하다",
+      "짜릿하다", "무섭다", "행복하다"
+    ];
+
+    // 95개 고유 상황 데이터: 아렌 전략 자가 생성 탄약
+    const masterData = [
+      { stage: 1, rank: "훈련병", scenario: "아침 편의점에서 삼각김밥 1+1 행사를 발견했다.", answer: "대박" },
+      { stage: 2, rank: "훈련병", scenario: "지하철 문 닫히기 1초 전에 뛰어들어 탑승했다.", answer: "헐" },
+      { stage: 3, rank: "훈련병", scenario: "친구가 내 과제 사진만 찍고 고맙다는 말이 없다.", answer: "어이없어" },
+      { stage: 4, rank: "훈련병", scenario: "랜덤 박스 첫 뽑기에서 최애 스킨이 떴다.", answer: "소름" },
+      { stage: 5, rank: "훈련병", scenario: "밤샘 공부 후 모의고사 점수가 20점 올랐다.", answer: "감동" },
+
+      { stage: 6, rank: "이등병", scenario: "단톡방에 올린 밈 하나로 팀 전체가 빵 터졌다.", answer: "웃겨죽겠네" },
+      { stage: 7, rank: "이등병", scenario: "회의 10분 전 발표 파일이 갑자기 열리지 않는다.", answer: "멘붕" },
+      { stage: 8, rank: "이등병", scenario: "동료가 같은 실수를 세 번 반복하고 또 변명한다.", answer: "킹받네" },
+      { stage: 9, rank: "이등병", scenario: "오래 연락 없던 친구가 생일 자정에 먼저 연락했다.", answer: "심쿵" },
+      { stage: 10, rank: "이등병", scenario: "내가 추천한 식당이 모두의 인생 맛집이 됐다.", answer: "찢었다" },
+      { stage: 11, rank: "이등병", scenario: "버튼 하나 실수로 주문 200개가 중복 접수됐다.", answer: "당황" },
+      { stage: 12, rank: "이등병", scenario: "상사가 내 아이디어를 자기 공처럼 보고했다.", answer: "빡친다" },
+      { stage: 13, rank: "이등병", scenario: "처음 만든 영상이 조회수 10만을 돌파했다.", answer: "대박" },
+      { stage: 14, rank: "이등병", scenario: "우산 없이 나왔는데 집 앞에서 폭우가 시작됐다.", answer: "헐" },
+      { stage: 15, rank: "이등병", scenario: "마감 직전 가장 까다로운 버그가 사라졌다.", answer: "짜릿하다" },
+
+      { stage: 16, rank: "일병", scenario: "새벽 배포 후 CPU가 95%까지 치솟는 경고가 떴다.", answer: "불안하다" },
+      { stage: 17, rank: "일병", scenario: "고객이 남긴 장문의 칭찬 리뷰를 읽었다.", answer: "감동" },
+      { stage: 18, rank: "일병", scenario: "백업도 안 했는데 노트북이 강제 재부팅됐다.", answer: "멘붕" },
+      { stage: 19, rank: "일병", scenario: "한 달 준비한 PT에서 경쟁사보다 먼저 혁신안을 공개했다.", answer: "찢었다" },
+      { stage: 20, rank: "일병", scenario: "내 실수로 전사 채널에 알림이 300번 발송됐다.", answer: "어이없어" },
+      { stage: 21, rank: "일병", scenario: "다이어트 중이라던 팀원이 회식에서 치킨 두 마리 먹었다.", answer: "웃겨죽겠네" },
+      { stage: 22, rank: "일병", scenario: "중요 계약서 마지막 줄 숫자 하나가 다르다.", answer: "소름" },
+      { stage: 23, rank: "일병", scenario: "교수님의 즉석 질문이 논문 맹점을 정확히 찔렀다.", answer: "당황" },
+      { stage: 24, rank: "일병", scenario: "팀원이 힘든 티 없이 야근을 전부 떠맡았다.", answer: "속상하다" },
+      { stage: 25, rank: "일병", scenario: "하루 삽질의 원인이 세미콜론 하나였다.", answer: "현타온다" },
+      { stage: 26, rank: "일병", scenario: "면접관이 포트폴리오를 보자마자 합격 가능성을 말했다.", answer: "대박" },
+      { stage: 27, rank: "일병", scenario: "이벤트 오픈 1분 만에 트래픽이 예상치의 4배를 기록했다.", answer: "헐" },
+      { stage: 28, rank: "일병", scenario: "클라이언트가 마감 30분 전에 요구사항을 추가했다.", answer: "킹받네" },
+      { stage: 29, rank: "일병", scenario: "고장 난 줄 알았던 서버의 원인이 콘센트였다.", answer: "어이없어" },
+      { stage: 30, rank: "일병", scenario: "팀 전원이 밤샘 끝에 첫 상용 릴리즈를 성공시켰다.", answer: "눈물난다" },
+
+      { stage: 31, rank: "상병", scenario: "리더 부재 상황에서 즉석 복구 플랜을 내가 짰다.", answer: "당황" },
+      { stage: 32, rank: "상병", scenario: "타 부서가 우리 책임이 아닌 장애를 떠넘긴다.", answer: "빡친다" },
+      { stage: 33, rank: "상병", scenario: "핵심 인력이 퇴사 통보를 하고 인수인계는 3일뿐이다.", answer: "불안하다" },
+      { stage: 34, rank: "상병", scenario: "예산이 반토막 났는데 목표 지표는 그대로다.", answer: "멘붕" },
+      { stage: 35, rank: "상병", scenario: "신입 인턴이 자동화 스크립트로 작업 시간을 반으로 줄였다.", answer: "대박" },
+      { stage: 36, rank: "상병", scenario: "회의에서 내 반대 의견이 결국 대형 장애를 막았다.", answer: "짜릿하다" },
+      { stage: 37, rank: "상병", scenario: "오류 원인이 제3자 라이브러리 잠복 버그로 확인됐다.", answer: "소름" },
+      { stage: 38, rank: "상병", scenario: "고객 인터뷰에서 제품이 삶을 바꿨다는 말을 들었다.", answer: "감동" },
+      { stage: 39, rank: "상병", scenario: "일주일 준비한 제안이 5분 만에 기각됐다.", answer: "현타온다" },
+      { stage: 40, rank: "상병", scenario: "새 기능 론칭 직후 평점이 2.1까지 급락했다.", answer: "속상하다" },
+      { stage: 41, rank: "상병", scenario: "보안 점검에서 치명 취약점이 운영 직전에 발견됐다.", answer: "헐" },
+      { stage: 42, rank: "상병", scenario: "불가능해 보이던 마이그레이션을 무중단으로 끝냈다.", answer: "찢었다" },
+      { stage: 43, rank: "상병", scenario: "새벽 3시 장애 콜이 연속으로 세 번 울렸다.", answer: "무섭다" },
+      { stage: 44, rank: "상병", scenario: "파트너사가 계약 조건 변경을 일방 통보했다.", answer: "어이없어" },
+      { stage: 45, rank: "상병", scenario: "내가 키운 후배가 발표에서 핵심 질문을 완벽 방어했다.", answer: "든든하다" },
+
+      { stage: 46, rank: "병장", scenario: "결정 지연으로 손실이 커져 우선순위를 즉시 재배치해야 한다.", answer: "불안하다" },
+      { stage: 47, rank: "병장", scenario: "경쟁사가 우리 핵심 기능을 그대로 복제 출시했다.", answer: "킹받네" },
+      { stage: 48, rank: "병장", scenario: "불신하던 두 팀이 내 조율안으로 처음 합의했다.", answer: "짜릿하다" },
+      { stage: 49, rank: "병장", scenario: "대형 고객사가 PoC 성공 후 3년 계약을 제안했다.", answer: "대박" },
+      { stage: 50, rank: "병장", scenario: "외부 감사에서 문서 누락이 27건 발견됐다.", answer: "당황" },
+      { stage: 51, rank: "병장", scenario: "재난 대비 훈련에서 DR 전환 시간이 목표의 절반이었다.", answer: "든든하다" },
+      { stage: 52, rank: "병장", scenario: "약관 개정 공지가 오해를 불러 항의가 폭주했다.", answer: "멘붕" },
+      { stage: 53, rank: "병장", scenario: "핵심 DB 인덱스 하나로 응답 속도가 10배 개선됐다.", answer: "소름" },
+      { stage: 54, rank: "병장", scenario: "보고서 수치가 부서마다 다르게 집계됐다.", answer: "어이없어" },
+      { stage: 55, rank: "병장", scenario: "야근 끝나고 나왔는데 택시가 한 대도 없다.", answer: "현타온다" },
+      { stage: 56, rank: "병장", scenario: "유저가 버그 제보와 함께 해결 힌트까지 남겨줬다.", answer: "감동" },
+      { stage: 57, rank: "병장", scenario: "해커톤에서 마지막 10초에 데모를 살려냈다.", answer: "헐" },
+      { stage: 58, rank: "병장", scenario: "법무 검토 없이 배포된 문구가 규정 위반 소지가 있다.", answer: "불안하다" },
+      { stage: 59, rank: "병장", scenario: "위기 회의 중 막내가 결정적 로그를 찾아냈다.", answer: "대박" },
+      { stage: 60, rank: "병장", scenario: "분기 목표를 초과 달성했지만 팀원 두 명이 번아웃 신호를 보인다.", answer: "속상하다" },
+
+      { stage: 61, rank: "하사", scenario: "24시간 내 다국가 장애 대응 지휘를 단독으로 맡았다.", answer: "무섭다" },
+      { stage: 62, rank: "하사", scenario: "데이터 유출 의심 신고로 즉시 포렌식 체계를 가동했다.", answer: "소름" },
+      { stage: 63, rank: "하사", scenario: "내 지시 한 줄로 세 팀의 작업 순서가 전면 변경된다.", answer: "당황" },
+      { stage: 64, rank: "하사", scenario: "중요 고객이 오늘 해결 못하면 계약 종료를 통보했다.", answer: "불안하다" },
+      { stage: 65, rank: "하사", scenario: "부정확한 보고 한 건이 이사회 의사결정에 반영됐다.", answer: "어이없어" },
+      { stage: 66, rank: "하사", scenario: "야전 복구 중 전원이 끊기고 UPS도 경고음을 냈다.", answer: "멘붕" },
+      { stage: 67, rank: "하사", scenario: "전사 타운홀에서 내 전략이 공식 표준으로 채택됐다.", answer: "찢었다" },
+      { stage: 68, rank: "하사", scenario: "위기 순간 팀원들이 지시 없이 역할을 완벽 분담했다.", answer: "든든하다" },
+      { stage: 69, rank: "하사", scenario: "밤샘 대응 후 사용자 불만 지수가 절반 이하로 떨어졌다.", answer: "짜릿하다" },
+      { stage: 70, rank: "하사", scenario: "긴급 패치 배포 직전 승인자가 연락 두절됐다.", answer: "킹받네" },
+      { stage: 71, rank: "하사", scenario: "라이브 데모 중 네트워크가 2초마다 끊긴다.", answer: "헐" },
+      { stage: 72, rank: "하사", scenario: "후속 분석 결과 대형 사고를 5분 차로 막은 것이 확인됐다.", answer: "소름" },
+      { stage: 73, rank: "하사", scenario: "적자 프로젝트를 리팩터링해 흑자 전환에 성공했다.", answer: "대박" },
+      { stage: 74, rank: "하사", scenario: "혹독한 피드백을 받은 후배가 눈물로 고맙다고 말했다.", answer: "눈물난다" },
+      { stage: 75, rank: "하사", scenario: "경쟁 입찰 프레젠테이션에서 즉석 질의 20개를 방어했다.", answer: "짜릿하다" },
+
+      { stage: 76, rank: "중사", scenario: "국가 단위 트래픽 급증 시뮬레이션에서 메인 리전이 붕괴했다.", answer: "멘붕" },
+      { stage: 77, rank: "중사", scenario: "보안 사고 브리핑과 언론 대응 문구를 10분 안에 확정해야 한다.", answer: "당황" },
+      { stage: 78, rank: "중사", scenario: "핵심 지표를 조작한 흔적이 내부 감사에서 포착됐다.", answer: "빡친다" },
+      { stage: 79, rank: "중사", scenario: "협력사 파업으로 공급망이 끊겨 대체 루트를 즉결해야 한다.", answer: "불안하다" },
+      { stage: 80, rank: "중사", scenario: "연합 TF가 내 작전판 한 장으로 즉시 실행 모드에 돌입했다.", answer: "든든하다" },
+      { stage: 81, rank: "중사", scenario: "침묵하던 고객 커뮤니티가 자발적으로 우리를 옹호하기 시작했다.", answer: "감동" },
+      { stage: 82, rank: "중사", scenario: "최종 리허설에서 딱 한 번만 나는 미스터리 버그가 재현됐다.", answer: "소름" },
+      { stage: 83, rank: "중사", scenario: "규제기관 질의서 50문항을 오늘 중 제출해야 한다.", answer: "현타온다" },
+      { stage: 84, rank: "중사", scenario: "적대적 리뷰어가 공개석상에서 내 설계를 인정했다.", answer: "찢었다" },
+      { stage: 85, rank: "중사", scenario: "새 전략 적용 첫날 이탈률이 절반으로 감소했다.", answer: "대박" },
+      { stage: 86, rank: "중사", scenario: "경영진이 실패 책임 소재를 두고 공개 충돌했다.", answer: "어이없어" },
+      { stage: 87, rank: "중사", scenario: "사소한 로그 한 줄이 전면 장애 원인을 정확히 가리켰다.", answer: "헐" },
+      { stage: 88, rank: "중사", scenario: "팀원 가족상 소식으로 일정 재조정을 즉시 결정해야 했다.", answer: "속상하다" },
+      { stage: 89, rank: "중사", scenario: "백업센터 전환 테스트가 실제 재난처럼 완벽히 작동했다.", answer: "짜릿하다" },
+      { stage: 90, rank: "중사", scenario: "승인 없는 변경이 발견돼 롤백과 보고를 동시에 수행했다.", answer: "무섭다" },
+
+      { stage: 91, rank: "대장", scenario: "전사 지휘권을 넘겨받는 순간 95단계 작전 타이머가 시작됐다.", answer: "소름" },
+      { stage: 92, rank: "대장", scenario: "모든 부서가 서로 다른 숫자를 주장하는 가운데 최종 결정을 내려야 한다.", answer: "멘붕" },
+      { stage: 93, rank: "대장", scenario: "외부 공격과 내부 장애가 동시에 발생한 복합 위기가 왔다.", answer: "헐" },
+      { stage: 94, rank: "대장", scenario: "지휘 한마디에 사기가 반전돼 전원이 재집결했다.", answer: "감동" },
+      { stage: 95, rank: "대장", scenario: "끝까지 버틴 팀과 최종 목표를 달성하며 작전을 종료했다.", answer: "눈물난다" }
+    ];
+
+    const surveyCheckpoints = new Set([5, 15, 30, 60, 95]);
+
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const startBtn = document.getElementById("startBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const dispatchBtn = document.getElementById("dispatchBtn");
+    const stageInfo = document.getElementById("stageInfo");
+    const scoreInfo = document.getElementById("scoreInfo");
+    const rankInfo = document.getElementById("rankInfo");
+    const stageText = document.getElementById("stageText");
+    const scenarioText = document.getElementById("scenarioText");
+    const optionsBox = document.getElementById("optionsBox");
+    const feedback = document.getElementById("feedback");
+    const progressBar = document.getElementById("progressBar");
+    const surveyModal = document.getElementById("surveyModal");
+    const surveyForm = document.getElementById("surveyForm");
+    const surveyTitle = document.getElementById("surveyTitle");
+    const resultSummary = document.getElementById("resultSummary");
+    const dispatchStatus = document.getElementById("dispatchStatus");
+    const bgVideo = document.getElementById("bgVideo");
+    const fallbackImage = document.getElementById("fallbackImage");
+
+    fallbackImage.style.backgroundImage = `url("data:image/svg+xml,${fallbackSvg}")`;
+
+    let currentIndex = 0;
+    let score = 0;
+    let selected = "";
+    let awaitingSurvey = false;
+    let currentSurveyStage = null;
+    const surveys = [];
+    let audioCtx = null;
+    let mediaUnlocked = false;
+
+    function activateFallback() {
+      bgVideo.style.display = "none";
+      fallbackImage.style.display = "block";
+    }
+
+    bgVideo.addEventListener("error", activateFallback);
+    const videoSource = bgVideo.querySelector("source");
+    if (videoSource) {
+      videoSource.addEventListener("error", activateFallback);
+    }
+    setTimeout(() => {
+      if (bgVideo.readyState < 2) {
+        activateFallback();
+      }
+    }, 4500);
+
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pickDistractors(answer, count) {
+      const pool = emotionPool.filter((e) => e !== answer);
+      return shuffle(pool).slice(0, count);
+    }
+
+    function playTone(freq, ms) {
+      if (!audioCtx || audioCtx.state !== "running") return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      gain.gain.value = 0.03;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + ms / 1000);
+    }
+
+    async function unlockMedia() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+          await audioCtx.resume();
+        }
+        playTone(180, 50);
+      } catch (_e) {
+        // 음성 컨텍스트가 잠겨도 게임은 진행
+      }
+
+      try {
+        await bgVideo.play();
+      } catch (_e) {
+        activateFallback();
+      }
+      mediaUnlocked = true;
+    }
+
+    function renderQuestion() {
+      const q = masterData[currentIndex];
+      selected = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+      stageInfo.textContent = `STAGE ${q.stage} / 95`;
+      scoreInfo.textContent = `SCORE ${score}`;
+      rankInfo.textContent = q.rank;
+      stageText.textContent = `${q.rank} ${q.stage}단계 전황`;
+      scenarioText.textContent = q.scenario;
+      progressBar.style.width = `${(q.stage / 95) * 100}%`;
+
+      const optionSet = shuffle([q.answer, ...pickDistractors(q.answer, 3)]);
+      optionsBox.innerHTML = "";
+      optionSet.forEach((opt) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "option";
+        b.textContent = opt;
+        b.addEventListener("click", () => {
+          selected = opt;
+          optionsBox.querySelectorAll(".option").forEach((el) => el.classList.remove("selected"));
+          b.classList.add("selected");
+          if (mediaUnlocked) playTone(260, 45);
+        });
+        optionsBox.appendChild(b);
+      });
+    }
+
+    function showSurvey(stage) {
+      awaitingSurvey = true;
+      currentSurveyStage = stage;
+      surveyTitle.textContent = `전략 설문 - ${stage}단계 체크포인트`;
+      surveyForm.reset();
+      surveyModal.style.display = "flex";
+    }
+
+    function advanceFlow() {
+      const clearedStage = masterData[currentIndex].stage;
+      if (surveyCheckpoints.has(clearedStage)) {
+        showSurvey(clearedStage);
+        return;
+      }
+
+      if (currentIndex >= masterData.length - 1) {
+        showResult();
+        return;
+      }
+      currentIndex += 1;
+      renderQuestion();
+    }
+
+    function showResult() {
+      gameScreen.classList.add("hidden");
+      resultScreen.style.display = "block";
+      const accuracy = ((score / 95) * 100).toFixed(1);
+      resultSummary.textContent =
+        `최종 스코어 ${score}/95 (${accuracy}%). 설문 체크포인트 ${surveys.length}회 수집 완료. ` +
+        `최종 계급: ${masterData[masterData.length - 1].rank}.`;
+      dispatchStatus.textContent = "전략 리포트 대기 중.";
+    }
+
+    function getPayload() {
+      return {
+        mission: "K-PATCH 2.0 Final Integration Deathmatch",
+        generatedAt: new Date().toISOString(),
+        totalStages: masterData.length,
+        score,
+        accuracy: Number(((score / masterData.length) * 100).toFixed(2)),
+        surveys,
+        userAgent: navigator.userAgent
+      };
+    }
+
+    function dispatchReport() {
+      const payload = getPayload();
+      const body = JSON.stringify(payload, null, 2);
+
+      let beaconSent = false;
+      try {
+        const blob = new Blob([body], { type: "application/json" });
+        beaconSent = navigator.sendBeacon("https://httpbin.org/post", blob);
+      } catch (_e) {
+        beaconSent = false;
+      }
+
+      const dl = document.createElement("a");
+      const outBlob = new Blob([body], { type: "application/json" });
+      dl.href = URL.createObjectURL(outBlob);
+      dl.download = "kpatch2-strategy-report.json";
+      dl.click();
+      setTimeout(() => URL.revokeObjectURL(dl.href), 1000);
+
+      dispatchStatus.textContent = beaconSent
+        ? "발신 성공: 네트워크 비콘 + 로컬 보고서 저장 완료."
+        : "발신 보조 모드: 네트워크 비콘 실패, 로컬 보고서 저장 완료.";
+    }
+
+    function validateData() {
+      if (masterData.length !== 95) {
+        throw new Error(`masterData length must be 95, got ${masterData.length}`);
+      }
+      const stageSet = new Set(masterData.map((v) => v.stage));
+      for (let i = 1; i <= 95; i++) {
+        if (!stageSet.has(i)) {
+          throw new Error(`missing stage ${i}`);
+        }
+      }
+    }
+
+    startBtn.addEventListener("click", async () => {
+      validateData();
+      await unlockMedia();
+      startScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+      renderQuestion();
+    });
+
+    submitBtn.addEventListener("click", () => {
+      if (awaitingSurvey) return;
+      if (!selected) {
+        feedback.className = "feedback no";
+        feedback.textContent = "감정을 선택해야 판정할 수 있다.";
+        return;
+      }
+
+      const q = masterData[currentIndex];
+      const ok = selected === q.answer;
+      if (ok) {
+        score += 1;
+        feedback.className = "feedback ok";
+        feedback.textContent = `정답. 아렌의 선택: ${q.answer}`;
+        if (mediaUnlocked) playTone(620, 70);
+      } else {
+        feedback.className = "feedback no";
+        feedback.textContent = `오답. 정답은 "${q.answer}"`;
+        if (mediaUnlocked) playTone(120, 110);
+      }
+      scoreInfo.textContent = `SCORE ${score}`;
+      submitBtn.disabled = true;
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        advanceFlow();
+      }, 420);
+    });
+
+    surveyForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(surveyForm);
+      surveys.push({
+        checkpoint: currentSurveyStage,
+        priority: fd.get("priority"),
+        morale: fd.get("morale"),
+        fit: Number(fd.get("fit")),
+        submittedAt: new Date().toISOString()
+      });
+      surveyModal.style.display = "none";
+      awaitingSurvey = false;
+
+      if (currentSurveyStage === 95) {
+        showResult();
+        return;
+      }
+      currentIndex += 1;
+      renderQuestion();
+    });
+
+    dispatchBtn.addEventListener("click", dispatchReport);
+    restartBtn.addEventListener("click", () => location.reload());
+  </script>
+</body>
+</html>
