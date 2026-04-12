@@ -317,6 +317,7 @@
   </main>
 
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
     const db = {
       steps: [
         { id: 1, rank: "훈련병", q: "예상치 못한 소식을 들었을 때", en: "Unexpected news", a: "헐", o: ["헐", "네", "음", "와"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
@@ -440,6 +441,17 @@
     const stageMedia = document.getElementById("stageMedia");
     const battleCard = document.getElementById("battleCard");
 
+    if (!startBtn) {
+      console.error("startBtn is null. Mission boot aborted.");
+      return;
+    }
+
+    function timeoutReject(ms, label) {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`${label} timeout`)), ms);
+      });
+    }
+
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i -= 1) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -458,7 +470,7 @@
 
       if (state.audio && state.audio.state === "suspended") {
         try {
-          await state.audio.resume();
+          await Promise.race([state.audio.resume(), timeoutReject(1200, "Audio resume")]);
         } catch (err) {
           console.warn("Audio resume blocked:", err);
         }
@@ -481,7 +493,10 @@
       missionVideo.muted = true;
       missionVideo.playsInline = true;
       try {
-        await missionVideo.play();
+        const unlockPlay = missionVideo.play();
+        if (unlockPlay && typeof unlockPlay.then === "function") {
+          await Promise.race([unlockPlay, timeoutReject(1200, "Video unlock play")]);
+        }
         missionVideo.pause();
         missionVideo.currentTime = 0;
       } catch (err) {
@@ -534,18 +549,26 @@
       missionVideo.style.display = "none";
     }
 
-    function loadVideo(url) {
+    async function loadVideo(url) {
       stageMedia.classList.remove("fallback-grid");
       missionVideo.style.display = "block";
+      missionVideo.muted = true;
+      missionVideo.playsInline = true;
       missionVideo.onerror = activateVideoFallback;
       missionVideo.onstalled = activateVideoFallback;
       missionVideo.onabort = activateVideoFallback;
 
       missionVideo.src = url;
       missionVideo.load();
-      missionVideo.play().catch(() => {
+      try {
+        const playPromise = missionVideo.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          await Promise.race([playPromise, timeoutReject(1500, "Video play")]);
+        }
+      } catch (err) {
+        console.warn("Video load/play fallback:", err);
         activateVideoFallback();
-      });
+      }
     }
 
     function updateProgress() {
@@ -592,7 +615,7 @@
       rankText.textContent = `${step.rank} // ${step.id}단계`;
       questionText.textContent = step.q;
       questionEn.textContent = step.en;
-      loadVideo(step.v);
+      void loadVideo(step.v);
 
       const opts = [...step.o];
       if (!opts.includes(step.a)) {
@@ -642,15 +665,24 @@
     }
 
     startBtn.addEventListener("click", async () => {
-      if (!state.unlocked) {
-        await unlockMediaContext();
+      console.log("Battle Start Triggered");
+      startBtn.disabled = true;
+      try {
+        if (!state.unlocked) {
+          await unlockMediaContext();
+        }
+      } catch (err) {
+        console.warn("Media unlock workaround applied:", err);
+      } finally {
+        startScreen.classList.remove("active");
+        quizScreen.classList.add("active");
+        state.index = 0;
+        state.score = 0;
+        state.lock = false;
+        renderStep();
+        startBtn.disabled = false;
       }
-      startScreen.classList.remove("active");
-      quizScreen.classList.add("active");
-      state.index = 0;
-      state.score = 0;
-      state.lock = false;
-      renderStep();
+    });
     });
   </script>
 </body>
