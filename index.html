@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K-PATCH 2.0 - Aren Ammo 95</title>
+  <style>
+    :root {
+      --bg: #060606;
+      --bg-soft: #141414;
+      --gold: #e5c369;
+      --gold-bright: #ffd978;
+      --text: #f2f2f2;
+      --danger: #ff5f5f;
+      --ok: #78ff9b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 20%, #2b2108 0, transparent 45%),
+        radial-gradient(circle at 80% 80%, #1f1502 0, transparent 40%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .shell {
+      width: min(960px, 100%);
+      border: 1px solid rgba(229, 195, 105, 0.3);
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(170deg, rgba(16, 16, 16, 0.98), rgba(6, 6, 6, 0.98));
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(229, 195, 105, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+    }
+
+    .status {
+      font-size: 0.86rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 0;
+      min-height: 620px;
+    }
+
+    @media (max-width: 860px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage {
+      padding: 22px;
+      border-right: 1px solid rgba(229, 195, 105, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .stage {
+        border-right: 0;
+        border-bottom: 1px solid rgba(229, 195, 105, 0.15);
+      }
+    }
+
+    .progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #232323;
+      border: 1px solid rgba(229, 195, 105, 0.3);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #8a6920, var(--gold-bright));
+      transition: width 0.25s ease;
+    }
+
+    .stage-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 12px;
+      border: 1px solid rgba(229, 195, 105, 0.4);
+      overflow: hidden;
+      background: #0d0d0d;
+      display: grid;
+      place-items: center;
+    }
+
+    .stage-media.fallback-grid {
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 20% 20%, rgba(227, 190, 91, 0.18), transparent 35%),
+        #0d0d0d;
+      background-size: 20px 20px, 20px 20px, auto, auto;
+    }
+
+    #missionVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .fallback-note {
+      position: absolute;
+      inset: auto 10px 10px 10px;
+      border: 1px solid rgba(229, 195, 105, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #d7d7d7;
+      font-size: 0.78rem;
+      display: none;
+    }
+
+    .stage-media.fallback-grid .fallback-note {
+      display: block;
+    }
+
+    .q-card {
+      border: 1px solid rgba(229, 195, 105, 0.24);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rank {
+      color: var(--gold-bright);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .question {
+      font-size: 1.08rem;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .en {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    .panel {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .battle-button {
+      border: 1px solid rgba(229, 195, 105, 0.5);
+      background: linear-gradient(180deg, #4a3810, #2a2009);
+      color: var(--gold-bright);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    .battle-button:hover {
+      filter: brightness(1.12);
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-btn {
+      border: 1px solid rgba(229, 195, 105, 0.26);
+      background: #111;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.96rem;
+      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .option-btn:hover:enabled {
+      border-color: rgba(255, 217, 120, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .option-btn.correct {
+      border-color: rgba(120, 255, 155, 0.7);
+      background: rgba(120, 255, 155, 0.16);
+    }
+
+    .option-btn.wrong {
+      border-color: rgba(255, 95, 95, 0.85);
+      background: rgba(255, 95, 95, 0.12);
+    }
+
+    .feedback {
+      min-height: 24px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .feedback.ok {
+      color: var(--ok);
+    }
+
+    .feedback.fail {
+      color: var(--danger);
+    }
+
+    .shake {
+      animation: shake 0.4s linear;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="battleCard">
+    <header class="header">
+      <h1>K-PATCH 2.0 // 아렌의 탄알 95발</h1>
+      <div class="status" id="hud">READY</div>
+    </header>
+    <section class="content">
+      <div class="stage">
+        <div class="progress-wrap">
+          <div id="stepText">STEP 0 / 95</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+        <div class="stage-media" id="stageMedia">
+          <video id="missionVideo" playsinline muted preload="metadata"></video>
+          <div class="fallback-note">VIDEO LINK FAILURE DETECTED // DARK TECH GRID MODE</div>
+        </div>
+        <div class="q-card">
+          <div class="rank" id="rankText">-</div>
+          <div class="question" id="questionText">BATTLE START를 눌러 작전을 개시하세요.</div>
+          <div class="en" id="questionEn">Press BATTLE START to initiate mission.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="screen active" id="startScreen">
+          <p>지시 사항: 95개 단계 전술 감정 탄알 전수 확인.</p>
+          <button class="battle-button" id="startBtn">BATTLE START</button>
+        </div>
+        <div class="screen" id="quizScreen">
+          <div class="options" id="options"></div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const db = {
+      steps: [
+        { id: 1, rank: "훈련병", q: "예상치 못한 소식을 들었을 때", en: "Unexpected news", a: "헐", o: ["헐", "네", "음", "와"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 2, rank: "훈련병", q: "엄청난 것을 보았을 때", en: "Something amazing", a: "대박", o: ["네", "대박", "아", "오"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 3, rank: "훈련병", q: "진짜라고 반응하고 싶은 순간", en: "When you want to say 진짜", a: "진짜", o: ["진짜", "킹받네", "별로네", "템포좋아"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 4, rank: "훈련병", q: "안녕라고 반응하고 싶은 순간", en: "When you want to say 안녕", a: "안녕", o: ["안녕", "레전드", "깔끔해", "조용히해"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 5, rank: "훈련병", q: "너무 웃긴 상황일 때", en: "Very funny situation", a: "완전웃겨", o: ["슬퍼", "완전웃겨", "화나", "졸려"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 6, rank: "이병", q: "뭥미라고 반응하고 싶은 순간", en: "When you want to say 뭥미", a: "뭥미", o: ["뭥미", "개이득", "답답해", "찢었다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 7, rank: "이병", q: "저기요라고 반응하고 싶은 순간", en: "When you want to say 저기요", a: "저기요", o: ["저기요", "멘탈나감", "아쉽다", "갓벽해"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 8, rank: "이병", q: "어쩔라고 반응하고 싶은 순간", en: "When you want to say 어쩔", a: "어쩔", o: ["어쩔", "미쳤다", "오졌다", "무야호"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 9, rank: "이병", q: "노답라고 반응하고 싶은 순간", en: "When you want to say 노답", a: "노답", o: ["노답", "쌉가능", "지렸다", "취향저격"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 10, rank: "일병", q: "상대가 어이없는 짓을 할 때", en: "Ridiculous behavior", a: "킹받네", o: ["킹받네", "즐거워", "행복해", "최고야"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 11, rank: "일병", q: "레전드라고 반응하고 싶은 순간", en: "When you want to say 레전드", a: "레전드", o: ["레전드", "찐이다", "망했다", "심각하네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 12, rank: "일병", q: "인정라고 반응하고 싶은 순간", en: "When you want to say 인정", a: "인정", o: ["인정", "텐션업", "폼미쳤다", "정신차려"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 13, rank: "일병", q: "개이득라고 반응하고 싶은 순간", en: "When you want to say 개이득", a: "개이득", o: ["개이득", "실화냐", "멘붕", "간지폭발"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 14, rank: "일병", q: "멘탈나감라고 반응하고 싶은 순간", en: "When you want to say 멘탈나감", a: "멘탈나감", o: ["멘탈나감", "눈치게임", "어질어질", "센스있네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 15, rank: "일병", q: "미쳤다라고 반응하고 싶은 순간", en: "When you want to say 미쳤다", a: "미쳤다", o: ["미쳤다", "핵공감", "빡친다", "무난하네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 16, rank: "일병", q: "쌉가능라고 반응하고 싶은 순간", en: "When you want to say 쌉가능", a: "쌉가능", o: ["쌉가능", "국룰", "머선129", "소름돋네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 17, rank: "일병", q: "에바야라고 반응하고 싶은 순간", en: "When you want to say 에바야", a: "에바야", o: ["에바야", "현웃", "각이다", "행복회로"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 18, rank: "일병", q: "찐이다라고 반응하고 싶은 순간", en: "When you want to say 찐이다", a: "찐이다", o: ["찐이다", "현웃터짐", "현생복귀", "현타오네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 19, rank: "일병", q: "텐션업라고 반응하고 싶은 순간", en: "When you want to say 텐션업", a: "텐션업", o: ["텐션업", "급발진", "탈주각", "슬슬빡침"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 20, rank: "상병", q: "믿기지 않는 실화인지 물을 때", en: "Is this real?", a: "실화냐", o: ["거짓말", "실화냐", "대박", "진짜"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 21, rank: "상병", q: "눈치게임라고 반응하고 싶은 순간", en: "When you want to say 눈치게임", a: "눈치게임", o: ["눈치게임", "빡세다", "퇴근각", "각성했다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 22, rank: "상병", q: "핵공감라고 반응하고 싶은 순간", en: "When you want to say 핵공감", a: "핵공감", o: ["핵공감", "어이상실", "아 시발", "무리수"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 23, rank: "상병", q: "국룰라고 반응하고 싶은 순간", en: "When you want to say 국룰", a: "국룰", o: ["국룰", "혼란하다", "심쿵", "뇌정지"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 24, rank: "상병", q: "현웃라고 반응하고 싶은 순간", en: "When you want to say 현웃", a: "현웃", o: ["현웃", "별로네", "감동이다", "승부수"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 25, rank: "상병", q: "현웃터짐라고 반응하고 싶은 순간", en: "When you want to say 현웃터짐", a: "현웃터짐", o: ["현웃터짐", "깔끔해", "떡상", "럭키비키"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 26, rank: "상병", q: "급발진라고 반응하고 싶은 순간", en: "When you want to say 급발진", a: "급발진", o: ["급발진", "사이다", "떡락", "이왜진"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 27, rank: "상병", q: "급정색라고 반응하고 싶은 순간", en: "When you want to say 급정색", a: "급정색", o: ["급정색", "답답해", "템포좋아", "도파민"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 28, rank: "상병", q: "빡세다라고 반응하고 싶은 순간", en: "When you want to say 빡세다", a: "빡세다", o: ["빡세다", "아쉽다", "조용히해", "리스펙"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 29, rank: "상병", q: "어이상실라고 반응하고 싶은 순간", en: "When you want to say 어이상실", a: "어이상실", o: ["어이상실", "오졌다", "웃참실패", "클라스"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 30, rank: "병장", q: "혼란하다라고 반응하고 싶은 순간", en: "When you want to say 혼란하다", a: "혼란하다", o: ["혼란하다", "지렸다", "찢었다", "뽕찼다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 31, rank: "병장", q: "별로네라고 반응하고 싶은 순간", en: "When you want to say 별로네", a: "별로네", o: ["별로네", "존맛", "갓벽해", "풀집중"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 32, rank: "병장", q: "깔끔해라고 반응하고 싶은 순간", en: "When you want to say 깔끔해", a: "깔끔해", o: ["깔끔해", "망했다", "무야호", "기빨린다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 33, rank: "병장", q: "사이다라고 반응하고 싶은 순간", en: "When you want to say 사이다", a: "사이다", o: ["사이다", "폼미쳤다", "취향저격", "한숨나와"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 34, rank: "병장", q: "답답해라고 반응하고 싶은 순간", en: "When you want to say 답답해", a: "답답해", o: ["답답해", "멘붕", "부담스럽네", "포기각"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 35, rank: "병장", q: "아쉽다라고 반응하고 싶은 순간", en: "When you want to say 아쉽다", a: "아쉽다", o: ["아쉽다", "어질어질", "심각하네", "재도전"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 36, rank: "병장", q: "오졌다라고 반응하고 싶은 순간", en: "When you want to say 오졌다", a: "오졌다", o: ["오졌다", "빡친다", "정신차려", "끝장보자"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 37, rank: "병장", q: "지렸다라고 반응하고 싶은 순간", en: "When you want to say 지렸다", a: "지렸다", o: ["지렸다", "머선129", "간지폭발", "전설각"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 38, rank: "병장", q: "존맛라고 반응하고 싶은 순간", en: "When you want to say 존맛", a: "존맛", o: ["존맛", "각이다", "센스있네", "성장중"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 39, rank: "병장", q: "망했다라고 반응하고 싶은 순간", en: "When you want to say 망했다", a: "망했다", o: ["망했다", "현생복귀", "무난하네", "초월했다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 40, rank: "병장", q: "폼미쳤다라고 반응하고 싶은 순간", en: "When you want to say 폼미쳤다", a: "폼미쳤다", o: ["폼미쳤다", "탈주각", "소름돋네", "멘탈갑"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 41, rank: "하사", q: "멘붕라고 반응하고 싶은 순간", en: "When you want to say 멘붕", a: "멘붕", o: ["멘붕", "피곤해", "행복회로", "불굴이다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 42, rank: "하사", q: "어질어질라고 반응하고 싶은 순간", en: "When you want to say 어질어질", a: "어질어질", o: ["어질어질", "퇴근각", "현타오네", "완성형"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 43, rank: "하사", q: "빡친다라고 반응하고 싶은 순간", en: "When you want to say 빡친다", a: "빡친다", o: ["빡친다", "아 시발", "슬슬빡침", "갓생"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 44, rank: "하사", q: "머선129라고 반응하고 싶은 순간", en: "When you want to say 머선129", a: "머선129", o: ["머선129", "심쿵", "의욕충만", "헐"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 45, rank: "하사", q: "각이다라고 반응하고 싶은 순간", en: "When you want to say 각이다", a: "각이다", o: ["각이다", "감동이다", "각성했다", "대박"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 46, rank: "중사", q: "현생복귀라고 반응하고 싶은 순간", en: "When you want to say 현생복귀", a: "현생복귀", o: ["현생복귀", "떡상", "무리수", "진짜"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 47, rank: "중사", q: "탈주각라고 반응하고 싶은 순간", en: "When you want to say 탈주각", a: "탈주각", o: ["탈주각", "떡락", "뇌정지", "안녕"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 48, rank: "중사", q: "피곤해라고 반응하고 싶은 순간", en: "When you want to say 피곤해", a: "피곤해", o: ["피곤해", "템포좋아", "승부수", "완전웃겨"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 49, rank: "중사", q: "퇴근각라고 반응하고 싶은 순간", en: "When you want to say 퇴근각", a: "퇴근각", o: ["퇴근각", "조용히해", "럭키비키", "뭥미"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 50, rank: "소위", q: "극도의 분노를 표출할 때", en: "Extreme anger", a: "아 시발", o: ["아 시발", "아이구", "어머나", "세상에"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 51, rank: "소위", q: "심쿵라고 반응하고 싶은 순간", en: "When you want to say 심쿵", a: "심쿵", o: ["심쿵", "찢었다", "도파민", "어쩔"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 52, rank: "소위", q: "감동이다라고 반응하고 싶은 순간", en: "When you want to say 감동이다", a: "감동이다", o: ["감동이다", "갓벽해", "리스펙", "노답"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 53, rank: "소위", q: "떡상라고 반응하고 싶은 순간", en: "When you want to say 떡상", a: "떡상", o: ["떡상", "무야호", "클라스", "킹받네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 54, rank: "소위", q: "떡락라고 반응하고 싶은 순간", en: "When you want to say 떡락", a: "떡락", o: ["떡락", "취향저격", "뽕찼다", "레전드"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 55, rank: "중위", q: "템포좋아라고 반응하고 싶은 순간", en: "When you want to say 템포좋아", a: "템포좋아", o: ["템포좋아", "부담스럽네", "풀집중", "인정"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 56, rank: "중위", q: "조용히해라고 반응하고 싶은 순간", en: "When you want to say 조용히해", a: "조용히해", o: ["조용히해", "심각하네", "기빨린다", "개이득"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 57, rank: "중위", q: "웃참실패라고 반응하고 싶은 순간", en: "When you want to say 웃참실패", a: "웃참실패", o: ["웃참실패", "정신차려", "한숨나와", "멘탈나감"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 58, rank: "중위", q: "찢었다라고 반응하고 싶은 순간", en: "When you want to say 찢었다", a: "찢었다", o: ["찢었다", "간지폭발", "포기각", "미쳤다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 59, rank: "중위", q: "갓벽해라고 반응하고 싶은 순간", en: "When you want to say 갓벽해", a: "갓벽해", o: ["갓벽해", "센스있네", "재도전", "쌉가능"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 60, rank: "대위", q: "무야호라고 반응하고 싶은 순간", en: "When you want to say 무야호", a: "무야호", o: ["무야호", "무난하네", "끝장보자", "에바야"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 61, rank: "대위", q: "취향저격라고 반응하고 싶은 순간", en: "When you want to say 취향저격", a: "취향저격", o: ["취향저격", "소름돋네", "전설각", "찐이다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 62, rank: "대위", q: "부담스럽네라고 반응하고 싶은 순간", en: "When you want to say 부담스럽네", a: "부담스럽네", o: ["부담스럽네", "행복회로", "성장중", "텐션업"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 63, rank: "대위", q: "심각하네라고 반응하고 싶은 순간", en: "When you want to say 심각하네", a: "심각하네", o: ["심각하네", "현타오네", "초월했다", "실화냐"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 64, rank: "대위", q: "정신차려라고 반응하고 싶은 순간", en: "When you want to say 정신차려", a: "정신차려", o: ["정신차려", "슬슬빡침", "멘탈갑", "눈치게임"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 65, rank: "소령", q: "간지폭발라고 반응하고 싶은 순간", en: "When you want to say 간지폭발", a: "간지폭발", o: ["간지폭발", "의욕충만", "불굴이다", "핵공감"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 66, rank: "소령", q: "센스있네라고 반응하고 싶은 순간", en: "When you want to say 센스있네", a: "센스있네", o: ["센스있네", "각성했다", "완성형", "국룰"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 67, rank: "소령", q: "무난하네라고 반응하고 싶은 순간", en: "When you want to say 무난하네", a: "무난하네", o: ["무난하네", "무리수", "갓생", "현웃"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 68, rank: "소령", q: "소름돋네라고 반응하고 싶은 순간", en: "When you want to say 소름돋네", a: "소름돋네", o: ["소름돋네", "뇌정지", "헐", "현웃터짐"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 69, rank: "소령", q: "행복회로라고 반응하고 싶은 순간", en: "When you want to say 행복회로", a: "행복회로", o: ["행복회로", "승부수", "대박", "급발진"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 70, rank: "대령", q: "삶의 허무함을 느낄 때", en: "Feeling empty", a: "현타오네", o: ["신나", "현타오네", "자신만만", "무덤덤"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 71, rank: "대령", q: "슬슬빡침라고 반응하고 싶은 순간", en: "When you want to say 슬슬빡침", a: "슬슬빡침", o: ["슬슬빡침", "이왜진", "안녕", "빡세다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 72, rank: "대령", q: "의욕충만라고 반응하고 싶은 순간", en: "When you want to say 의욕충만", a: "의욕충만", o: ["의욕충만", "도파민", "완전웃겨", "어이상실"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 73, rank: "대령", q: "각성했다라고 반응하고 싶은 순간", en: "When you want to say 각성했다", a: "각성했다", o: ["각성했다", "리스펙", "뭥미", "혼란하다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 74, rank: "대령", q: "무리수라고 반응하고 싶은 순간", en: "When you want to say 무리수", a: "무리수", o: ["무리수", "클라스", "저기요", "별로네"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 75, rank: "준장", q: "뇌정지라고 반응하고 싶은 순간", en: "When you want to say 뇌정지", a: "뇌정지", o: ["뇌정지", "뽕찼다", "어쩔", "깔끔해"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 76, rank: "준장", q: "승부수라고 반응하고 싶은 순간", en: "When you want to say 승부수", a: "승부수", o: ["승부수", "풀집중", "노답", "사이다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 77, rank: "준장", q: "럭키비키라고 반응하고 싶은 순간", en: "When you want to say 럭키비키", a: "럭키비키", o: ["럭키비키", "기빨린다", "킹받네", "답답해"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 78, rank: "준장", q: "이왜진라고 반응하고 싶은 순간", en: "When you want to say 이왜진", a: "이왜진", o: ["이왜진", "한숨나와", "레전드", "아쉽다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 79, rank: "준장", q: "도파민라고 반응하고 싶은 순간", en: "When you want to say 도파민", a: "도파민", o: ["도파민", "포기각", "인정", "오졌다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 80, rank: "소장", q: "리스펙라고 반응하고 싶은 순간", en: "When you want to say 리스펙", a: "리스펙", o: ["리스펙", "재도전", "개이득", "지렸다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 81, rank: "소장", q: "클라스라고 반응하고 싶은 순간", en: "When you want to say 클라스", a: "클라스", o: ["클라스", "끝장보자", "멘탈나감", "존맛"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 82, rank: "소장", q: "뽕찼다라고 반응하고 싶은 순간", en: "When you want to say 뽕찼다", a: "뽕찼다", o: ["뽕찼다", "전설각", "미쳤다", "망했다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 83, rank: "소장", q: "풀집중라고 반응하고 싶은 순간", en: "When you want to say 풀집중", a: "풀집중", o: ["풀집중", "성장중", "쌉가능", "폼미쳤다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 84, rank: "소장", q: "기빨린다라고 반응하고 싶은 순간", en: "When you want to say 기빨린다", a: "기빨린다", o: ["기빨린다", "초월했다", "에바야", "멘붕"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 85, rank: "중장", q: "한숨나와라고 반응하고 싶은 순간", en: "When you want to say 한숨나와", a: "한숨나와", o: ["한숨나와", "멘탈갑", "찐이다", "어질어질"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 86, rank: "중장", q: "포기각라고 반응하고 싶은 순간", en: "When you want to say 포기각", a: "포기각", o: ["포기각", "불굴이다", "텐션업", "빡친다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 87, rank: "중장", q: "재도전라고 반응하고 싶은 순간", en: "When you want to say 재도전", a: "재도전", o: ["재도전", "완성형", "실화냐", "머선129"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackAds.mp4" },
+        { id: 88, rank: "중장", q: "끝장보자라고 반응하고 싶은 순간", en: "When you want to say 끝장보자", a: "끝장보자", o: ["끝장보자", "갓생", "눈치게임", "각이다"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+        { id: 89, rank: "중장", q: "전설각라고 반응하고 싶은 순간", en: "When you want to say 전설각", a: "전설각", o: ["전설각", "헐", "핵공감", "현생복귀"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+        { id: 90, rank: "중장", q: "성장중라고 반응하고 싶은 순간", en: "When you want to say 성장중", a: "성장중", o: ["성장중", "대박", "국룰", "탈주각"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+        { id: 91, rank: "대장", q: "초월했다라고 반응하고 싶은 순간", en: "When you want to say 초월했다", a: "초월했다", o: ["초월했다", "진짜", "현웃", "피곤해"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+        { id: 92, rank: "대장", q: "멘탈갑라고 반응하고 싶은 순간", en: "When you want to say 멘탈갑", a: "멘탈갑", o: ["멘탈갑", "안녕", "현웃터짐", "퇴근각"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+        { id: 93, rank: "대장", q: "불굴이다라고 반응하고 싶은 순간", en: "When you want to say 불굴이다", a: "불굴이다", o: ["불굴이다", "완전웃겨", "급발진", "아 시발"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+        { id: 94, rank: "대장", q: "완성형라고 반응하고 싶은 순간", en: "When you want to say 완성형", a: "완성형", o: ["완성형", "뭥미", "급정색", "심쿵"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+        { id: 95, rank: "대장", q: "갓생을 살고 있는 자신에게", en: "Living a great life", a: "갓생", o: ["갓생", "노답", "폭망", "그럭저럭"], v: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
+      ]
+    };
+
+    const state = {
+      index: 0,
+      score: 0,
+      lock: false,
+      audio: null,
+      unlocked: false
+    };
+
+    const startBtn = document.getElementById("startBtn");
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const questionText = document.getElementById("questionText");
+    const questionEn = document.getElementById("questionEn");
+    const rankText = document.getElementById("rankText");
+    const progressFill = document.getElementById("progressFill");
+    const stepText = document.getElementById("stepText");
+    const hud = document.getElementById("hud");
+    const missionVideo = document.getElementById("missionVideo");
+    const stageMedia = document.getElementById("stageMedia");
+    const battleCard = document.getElementById("battleCard");
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    async function unlockMediaContext() {
+      if (!state.audio) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          state.audio = new AudioCtx();
+        }
+      }
+
+      if (state.audio && state.audio.state === "suspended") {
+        try {
+          await state.audio.resume();
+        } catch (err) {
+          console.warn("Audio resume blocked:", err);
+        }
+      }
+
+      if (state.audio) {
+        try {
+          const osc = state.audio.createOscillator();
+          const gain = state.audio.createGain();
+          gain.gain.value = 0.00001;
+          osc.connect(gain);
+          gain.connect(state.audio.destination);
+          osc.start();
+          osc.stop(state.audio.currentTime + 0.03);
+        } catch (err) {
+          console.warn("Silent unlock tone failed:", err);
+        }
+      }
+
+      missionVideo.muted = true;
+      missionVideo.playsInline = true;
+      try {
+        await missionVideo.play();
+        missionVideo.pause();
+        missionVideo.currentTime = 0;
+      } catch (err) {
+        console.warn("Video unlock blocked:", err);
+      }
+      state.unlocked = true;
+    }
+
+    function playSfx(type) {
+      if (!state.audio) return;
+      if (state.audio.state === "suspended") {
+        state.audio.resume().catch(() => {});
+      }
+
+      const osc = state.audio.createOscillator();
+      const gain = state.audio.createGain();
+
+      const now = state.audio.currentTime;
+      const duration = type === "ok" ? 0.12 : 0.35;
+      osc.type = type === "ok" ? "triangle" : "sawtooth";
+      osc.frequency.setValueAtTime(type === "ok" ? 920 : 180, now);
+      if (type === "fail") {
+        osc.frequency.exponentialRampToValueAtTime(120, now + duration);
+      }
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(state.audio.destination);
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    function vibrateOrShake(ms) {
+      if (navigator.vibrate) {
+        navigator.vibrate(ms);
+        return;
+      }
+
+      battleCard.classList.remove("shake");
+      void battleCard.offsetWidth;
+      battleCard.classList.add("shake");
+      setTimeout(() => battleCard.classList.remove("shake"), ms);
+    }
+
+    function activateVideoFallback() {
+      stageMedia.classList.add("fallback-grid");
+      missionVideo.style.display = "none";
+    }
+
+    function loadVideo(url) {
+      stageMedia.classList.remove("fallback-grid");
+      missionVideo.style.display = "block";
+      missionVideo.onerror = activateVideoFallback;
+      missionVideo.onstalled = activateVideoFallback;
+      missionVideo.onabort = activateVideoFallback;
+
+      missionVideo.src = url;
+      missionVideo.load();
+      missionVideo.play().catch(() => {
+        activateVideoFallback();
+      });
+    }
+
+    function updateProgress() {
+      const total = db.steps.length;
+      const current = Math.min(state.index + 1, total);
+      stepText.textContent = `STEP ${current} / ${total}`;
+      progressFill.style.width = `${(state.index / total) * 100}%`;
+      hud.textContent = `SCORE ${state.score} / ${total}`;
+    }
+
+    function showCompletion() {
+      rankText.textContent = "MISSION COMPLETE";
+      questionText.textContent = `작전 종료: ${state.score} / ${db.steps.length} 정답`;
+      questionEn.textContent = "Deployment complete. Press to restart.";
+      optionsEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      const restart = document.createElement("button");
+      restart.className = "battle-button";
+      restart.textContent = "REDEPLOY";
+      restart.addEventListener("click", () => {
+        state.index = 0;
+        state.score = 0;
+        state.lock = false;
+        renderStep();
+      });
+      optionsEl.appendChild(restart);
+      progressFill.style.width = "100%";
+      stepText.textContent = `STEP ${db.steps.length} / ${db.steps.length}`;
+      hud.textContent = `MISSION END // ${state.score} HIT`;
+    }
+
+    function renderStep() {
+      updateProgress();
+      if (state.index >= db.steps.length) {
+        showCompletion();
+        return;
+      }
+
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+      optionsEl.innerHTML = "";
+
+      const step = db.steps[state.index];
+      rankText.textContent = `${step.rank} // ${step.id}단계`;
+      questionText.textContent = step.q;
+      questionEn.textContent = step.en;
+      loadVideo(step.v);
+
+      const opts = [...step.o];
+      if (!opts.includes(step.a)) {
+        opts[0] = step.a;
+      }
+      const shuffled = shuffle(opts);
+
+      shuffled.forEach((choice) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = choice;
+        btn.addEventListener("click", () => handleAnswer(choice, step.a, btn));
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(choice, answer, selectedBtn) {
+      if (state.lock) return;
+      state.lock = true;
+
+      const buttons = Array.from(optionsEl.querySelectorAll(".option-btn"));
+      buttons.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.textContent === answer) btn.classList.add("correct");
+      });
+
+      if (choice === answer) {
+        selectedBtn.classList.add("correct");
+        feedbackEl.textContent = "정답! 전술 탄알 명중.";
+        feedbackEl.className = "feedback ok";
+        state.score += 1;
+        vibrateOrShake(100);
+        playSfx("ok");
+      } else {
+        selectedBtn.classList.add("wrong");
+        feedbackEl.textContent = `오답! 정답은 "${answer}"`;
+        feedbackEl.className = "feedback fail";
+        vibrateOrShake(400);
+        playSfx("fail");
+      }
+
+      setTimeout(() => {
+        state.index += 1;
+        state.lock = false;
+        renderStep();
+      }, 900);
+    }
+
+    startBtn.addEventListener("click", async () => {
+      if (!state.unlocked) {
+        await unlockMediaContext();
+      }
+      startScreen.classList.remove("active");
+      quizScreen.classList.add("active");
+      state.index = 0;
+      state.score = 0;
+      state.lock = false;
+      renderStep();
+    });
+  </script>
+</body>
+</html>
