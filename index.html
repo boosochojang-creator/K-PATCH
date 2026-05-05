@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>K-PATCH ULTIMATE</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5TGK3J44G1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5TGK3J44G1');
+  </script>
+  <style>
+    .beta-strip { width:100%; max-width:520px; margin:0 auto; padding:10px 14px; text-align:center; border-radius:0 0 14px 14px; border-top:none; }
+    .beta-strip-en { font-size:clamp(0.78rem,2.8vw,0.88rem); line-height:1.45; color:rgba(255,255,255,0.92); font-weight:700; text-wrap:balance; }
+    .beta-strip-ko { font-size:clamp(0.68rem,2.4vw,0.76rem); line-height:1.4; color:rgba(255,215,0,0.72); margin-top:6px; text-wrap:balance; }
+    .intro-welcome { width:100%; max-width:420px; padding:0 8px; margin-top:4px; }
+    .intro-welcome-en { font-size:clamp(0.95rem,3.6vw,1.12rem); line-height:1.45; font-weight:800; color:rgba(255,255,255,0.96); text-wrap:balance; }
+    .intro-welcome-ko { font-size:clamp(0.72rem,2.8vw,0.82rem); line-height:1.45; color:rgba(255,215,0,0.78); margin-top:8px; text-wrap:balance; }
+    .quiz-prompt-en { font-size:clamp(1rem,4vw,1.15rem); line-height:1.5; color:rgba(255,255,255,0.95); font-weight:700; }
+    .quiz-prompt-ko { font-size:0.82rem; line-height:1.45; color:rgba(255,215,0,0.75); margin-top:10px; }
+    .usage-tutorial { margin-top:10px; }
+    #stage-intro-tone { margin-bottom:10px; font-size:clamp(0.72rem,2.8vw,0.82rem); line-height:1.45; color:rgba(255,255,255,0.88); }
+    .intro-beta-notice { width:100%; max-width:480px; padding:12px 14px; text-align:center; margin-bottom:10px; }
+    .intro-beta-notice-en { font-size:clamp(0.82rem,3.2vw,0.95rem); line-height:1.45; font-weight:800; color:rgba(255,255,255,0.96); text-wrap:balance; }
+    .intro-beta-notice-ko { font-size:clamp(0.74rem,2.8vw,0.86rem); line-height:1.45; color:rgba(255,215,0,0.88); margin-top:8px; text-wrap:balance; font-weight:700; }
+    .survey-disclaimer { width:100%; padding:10px 12px; text-align:center; margin-bottom:10px; border-radius:12px; border:1px solid rgba(255,215,0,0.28); background:rgba(255,255,255,0.05); }
+    .survey-disclaimer-en { font-size:clamp(0.74rem,2.8vw,0.84rem); line-height:1.45; font-weight:700; color:rgba(255,255,255,0.9); text-wrap:balance; }
+    .survey-disclaimer-ko { font-size:clamp(0.7rem,2.6vw,0.8rem); line-height:1.45; color:rgba(255,215,0,0.78); margin-top:6px; text-wrap:balance; }
+
+    /* ── InApp Browser Banner ── */
+    .inapp-banner { position:fixed; top:0; left:0; right:0; z-index:900; background:rgba(190,30,30,0.97); padding:10px 14px; text-align:center; }
+    .inapp-banner-inner { display:flex; flex-direction:column; gap:5px; align-items:center; }
+    .inapp-banner-en { font-size:clamp(0.72rem,2.8vw,0.82rem); font-weight:700; color:#fff; text-wrap:balance; }
+    .inapp-banner-ko { font-size:clamp(0.66rem,2.5vw,0.74rem); color:rgba(255,255,255,0.85); text-wrap:balance; }
+
+    /* ── Pronunciation Test Panel ── */
+    .pron-panel { padding:14px; display:flex; flex-direction:column; gap:10px; text-align:center; border:1px solid rgba(255,215,0,0.25); }
+    .pron-title-en { font-size:0.9rem; font-weight:900; color:var(--gold); letter-spacing:0.06em; }
+    .pron-title-ko { font-size:0.72rem; color:rgba(255,255,255,0.6); margin-top:-6px; }
+    .pron-instruction { font-size:0.78rem; color:rgba(255,255,255,0.72); line-height:1.4; }
+    .pron-target { font-size:clamp(1.25rem,5vw,1.8rem); font-weight:900; color:var(--gold); padding:8px 0; word-break:keep-all; line-height:1.3; }
+    .pron-actions { display:flex; justify-content:center; }
+    .pron-result-line { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.9); line-height:1.45; }
+    .pron-heard { font-size:0.75rem; color:rgba(255,215,0,0.65); font-style:italic; }
+    .pron-retry-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:4px; }
+    .pron-no-support { font-size:0.74rem; color:rgba(255,200,100,0.9); line-height:1.45; }
+    .pron-progress-line { font-size:0.78rem; color:rgba(255,255,255,0.6); }
+    .pron-progress-line strong { color:var(--gold); }
+    .pron-final-line { font-size:0.95rem !important; font-weight:900 !important; padding:4px 0; }
+    .btn-gold:disabled { opacity:0.35; cursor:not-allowed; box-shadow:none; pointer-events:none; }
+
+    /* ── Subscribe / Unlock Screen ── */
+    .subscribe-free-notice { padding:12px 14px; border-radius:12px; border:1px solid rgba(255,215,0,0.22); background:rgba(255,255,255,0.04); display:flex; flex-direction:column; gap:8px; }
+    .subscribe-free-en { font-size:clamp(0.8rem,3vw,0.9rem); line-height:1.55; color:rgba(255,255,255,0.92); font-weight:700; text-wrap:balance; }
+    .subscribe-free-ko { font-size:clamp(0.72rem,2.7vw,0.82rem); line-height:1.5; color:rgba(255,215,0,0.8); text-wrap:balance; }
+    .btn-youtube { background:linear-gradient(180deg,#ff4444,#bb0000); color:#fff; box-shadow:0 6px 20px rgba(220,0,0,0.3); width:100%; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+    .btn-confirmed { background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.4); color:var(--gold); width:100%; }
+
+    /* ── Survey suggestions textarea ── */
+    .glass-textarea { width:100%; min-height:80px; border-radius:10px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.35); color:var(--text); padding:10px 12px; font-size:0.88rem; font-family:inherit; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); resize:vertical; line-height:1.45; }
+    .glass-textarea::placeholder { color:rgba(255,255,255,0.32); }
+  </style>
+</head>
+<body>
+
+  <!-- ── KakaoTalk / InApp Browser Banner ── -->
+  <div id="inapp-banner" class="inapp-banner" hidden>
+    <div class="inapp-banner-inner">
+      <p class="inapp-banner-en">⚠️ Limited features in this browser. Open in Chrome for full voice &amp; audio.</p>
+      <p class="inapp-banner-ko">카카오톡 인앱에서는 음성·오디오가 제한됩니다. Chrome에서 열어주세요.</p>
+      <button type="button" id="btn-copy-url" class="btn btn-outline btn-small" style="margin-top:4px;max-width:220px">
+        <span class="btn-stack btn-stack--tight">
+          <span class="btn-line-en">🔗 Copy URL</span>
+          <span class="btn-line-ko">주소 복사</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div id="bg-layer" class="bg-layer" aria-hidden="true"></div>
+  <div id="red-flash" class="red-flash" aria-hidden="true"></div>
+
+  <main id="app" class="app">
+
+    <aside class="beta-strip glass-panel" role="note" aria-label="Beta program notice">
+      <p class="beta-strip-en">K-PATCH is evolving. Fresh expressions are uploaded daily—stay tuned!</p>
+      <p class="beta-strip-ko">베타 버전입니다. 매일 새로운 표현이 올라옵니다. 계속 지켜봐 주세요!</p>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════
+         INTRO
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-intro" class="phase phase-intro is-visible">
+      <div class="intro-beta-notice glass-panel" role="status" aria-live="polite">
+        <p class="intro-beta-notice-en">
+          Audio may be limited in in-app browsers (KakaoTalk, Telegram).<br>
+          For full experience, open in Chrome.
+        </p>
+        <p class="intro-beta-notice-ko">
+          카카오톡·텔레그램에서는 음성이 제한될 수 있습니다.<br>
+          정상 사용은 크롬에서 열어 주세요.
+        </p>
+      </div>
+
+      <div class="intro-logo-wrap">
+        <p class="intro-eyebrow">OPERATION K-PATCH</p>
+        <h1 class="intro-logo">K-PATCH</h1>
+        <p class="intro-sub">ULTIMATE</p>
+      </div>
+
+      <div class="video-slot glass-panel">
+        <video id="hero-video" class="hero-video" autoplay muted loop playsinline preload="auto">
+          <source src="assets/video/hero.mp4" type="video/mp4">
+        </video>
+        <div id="video-fallback" class="video-fallback glass-panel" hidden>
+          <span class="fallback-title">영상 슬롯 백업</span>
+          <p>영상이 없어도 앱은 계속됩니다.</p>
+          <div class="fallback-grid" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="intro-welcome">
+        <p class="intro-welcome-en">Don't just learn Korean. Start living it with K-PATCH.</p>
+        <p class="intro-welcome-ko">한국어를 '공부'로만 두지 마세요. K-PATCH와 함께 살아가는 한국어를 시작하세요.</p>
+      </div>
+
+      <div class="glass-panel usage-tutorial" id="usage-tutorial-intro" role="note">
+        <p class="usage-tutorial-line usage-tutorial-en">⚠️ Some expressions are casual or slang.</p>
+        <p class="usage-tutorial-line usage-tutorial-en">Use them carefully depending on situation.</p>
+        <p class="usage-tutorial-line usage-tutorial-ko">⚠️ 일부 표현은 반말·슬랭입니다.</p>
+        <p class="usage-tutorial-line usage-tutorial-ko">상황에 따라 조심해서 사용하세요.</p>
+      </div>
+
+      <div class="intro-actions">
+        <button type="button" id="btn-intro-audio" class="btn btn-outline">
+          <span class="btn-stack"><span class="btn-line-en">INTRO AUDIO</span><span class="btn-line-ko">인트로 오디오</span></span>
+        </button>
+        <button type="button" id="btn-battle-start" class="btn btn-gold btn-battle">
+          <span class="btn-stack"><span class="btn-line-en">START MISSION</span><span class="btn-line-ko">미션 시작</span></span>
+        </button>
+      </div>
+      <p id="intro-sync-hint" class="intro-hint" hidden>Syncing… / 동기화 중…</p>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         STAGE INTRO
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-stage-intro" class="phase phase-intro" hidden>
+      <div class="intro-logo-wrap">
+        <p class="intro-eyebrow">STAGE BRIEFING</p>
+        <h2 class="intro-logo" id="stage-intro-title">훈련병 (RECRUIT)</h2>
+        <p class="intro-sub" id="stage-intro-range">1 – 10</p>
+      </div>
+      <div class="glass-panel form-card">
+        <div id="usage-tutorial-stage" class="usage-tutorial usage-tutorial--compact" hidden role="note">
+          <p class="usage-tutorial-line usage-tutorial-en">⚠️ Some expressions are casual or slang.</p>
+          <p class="usage-tutorial-line usage-tutorial-en">Use them carefully depending on situation.</p>
+          <p class="usage-tutorial-line usage-tutorial-ko">⚠️ 일부 표현은 반말·슬랭입니다.</p>
+          <p class="usage-tutorial-line usage-tutorial-ko">상황에 따라 조심해서 사용하세요.</p>
+        </div>
+        <p class="dokdo-label" id="stage-intro-tone"></p>
+        <p class="dokdo-label" id="stage-intro-desc"></p>
+        <div class="form-actions-row">
+          <button type="button" id="btn-stage-intro-start" class="btn btn-gold">
+            <span class="btn-stack"><span class="btn-line-en">BEGIN STAGE</span><span class="btn-line-ko">단계 시작</span></span>
+          </button>
+          <div class="form-actions-row-inner">
+            <button type="button" id="btn-stage-intro-back" class="btn btn-outline">
+              <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+            </button>
+            <button type="button" id="btn-stage-intro-home" class="btn btn-outline">
+              <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         QUIZ
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-quiz" class="phase phase-quiz" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge" id="quiz-stage-badge">훈련병 (RECRUIT)</p>
+        <p class="step-line">
+          <span id="quiz-stage-range">1–10</span> ·
+          <span id="quiz-local-pos">1</span> / <span id="quiz-local-total">10</span>
+          <span class="landmark-hint" id="quiz-global-id"></span>
+        </p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-quiz-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-quiz-home" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="quiz-card glass-panel">
+        <p id="quiz-prompt-en" class="quiz-prompt-en"></p>
+        <p id="quiz-prompt-ko" class="quiz-prompt-ko"></p>
+        <p id="quiz-usage-warning" class="quiz-usage-warning" hidden></p>
+      </div>
+
+      <div id="options-wrap" class="options-wrap"></div>
+
+      <div id="hint-video-box" class="hint-video glass-panel" hidden>
+        <video id="hint-video" controls playsinline preload="metadata"></video>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         STAGE CLEAR + PRONUNCIATION TEST
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-stage-clear" class="phase phase-result" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge badge-stack">
+          <span class="badge-line-en">STAGE CLEARED</span>
+          <span class="badge-line-ko">단계 돌파 / Stage Clear</span>
+        </p>
+        <p class="step-line" id="stage-clear-title">RECRUIT · 훈련병</p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-stage-clear-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-stage-clear-home" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="glass-panel form-card">
+        <p class="dokdo-label" id="stage-clear-desc"></p>
+
+        <!-- ── PRONUNCIATION TEST ── -->
+        <div id="pron-panel" class="pron-panel glass-panel">
+          <p class="pron-title-en">🎤 Pronunciation Test</p>
+          <p class="pron-title-ko">발음 테스트 — 5문제 평균 60점 이상 합격 / Avg 60+ to pass</p>
+
+          <!-- Progress -->
+          <p class="pron-progress-line">
+            Question / 문제 <strong id="pron-progress">1 / 5</strong>
+          </p>
+
+          <p class="pron-instruction">Say this expression / 이 표현을 말해보세요:</p>
+          <p class="pron-target" id="pron-target">—</p>
+
+          <!-- Speak button -->
+          <div class="pron-actions">
+            <button type="button" id="btn-pron-record" class="btn btn-outline">
+              <span class="btn-stack">
+                <span class="btn-line-en" id="pron-btn-label-en">🎤 TAP TO SPEAK</span>
+                <span class="btn-line-ko" id="pron-btn-label-ko">탭하여 말하기</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- Per-question result -->
+          <div id="pron-result" hidden>
+            <p class="pron-result-line" id="pron-score-line"></p>
+            <p class="pron-result-line pron-heard" id="pron-heard-line"></p>
+            <div class="pron-retry-row">
+              <button type="button" id="btn-pron-retry" class="btn btn-outline btn-small">
+                <span class="btn-stack btn-stack--tight">
+                  <span class="btn-line-en">RETRY</span>
+                  <span class="btn-line-ko">다시</span>
+                </span>
+              </button>
+              <button type="button" id="btn-pron-next" class="btn btn-gold btn-small" hidden>
+                <span class="btn-stack btn-stack--tight">
+                  <span class="btn-line-en" id="pron-next-label-en">NEXT →</span>
+                  <span class="btn-line-ko" id="pron-next-label-ko">다음</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Final average result (shown after all 5) -->
+          <div id="pron-final" hidden>
+            <p class="pron-result-line pron-final-line" id="pron-final-score"></p>
+          </div>
+
+          <!-- No SpeechRecognition support -->
+          <div id="pron-no-support-wrap" hidden>
+            <p class="pron-no-support">⚠️ Voice recognition requires Chrome. / 음성인식은 Chrome에서만 지원됩니다.</p>
+            <button type="button" id="btn-pron-skip-nosupport" class="btn btn-outline btn-small" style="margin-top:8px;align-self:center">
+              <span class="btn-stack btn-stack--tight">
+                <span class="btn-line-en">SKIP TEST</span>
+                <span class="btn-line-ko">건너뛰기</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <!-- ── / PRONUNCIATION TEST ── -->
+
+        <button type="button" id="btn-stage-clear-next" class="btn btn-gold" disabled>
+          <span class="btn-stack">
+            <span class="btn-line-en">VIEW RANK INSIGNIA</span>
+            <span class="btn-line-ko">계급장 확인</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         CERTIFICATION CARD
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-cert" class="phase phase-result" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge" id="cert-badge">CERTIFICATION · 인증</p>
+        <p class="step-line" id="cert-title">훈련병 인증카드 / Recruit Cert</p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-cert-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-cert-home" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+
+      <section id="cert-card" class="glass-panel cert-card" aria-label="Certification card">
+        <div class="cert-overlay">
+          <p class="cert-rank" id="cert-rank">P8</p>
+          <p class="cert-score">
+            <span id="cert-stage-label-en">RECRUIT</span> · <span id="cert-stage-label">훈련병</span> ·
+            <span id="cert-stage-range">1–10</span>
+          </p>
+          <p class="cert-score">
+            Stage Quiz / 단계 퀴즈: <span id="cert-stage-correct">0</span> / <span id="cert-stage-total">10</span>
+          </p>
+          <p class="cert-score">
+            Total / 전체: <span id="cert-total-correct">0</span> / <span id="cert-total-total">95</span> (<span id="cert-acc">0</span>%)
+          </p>
+          <p class="cert-score">
+            Pronunciation / 발음: <span id="cert-pron-score">—</span>
+          </p>
+          <p class="cert-capture">Capture this screen and prove your level / 화면을 캡처해 실력을 증명하세요</p>
+          <button type="button" id="btn-cert-share" class="btn btn-outline btn-small" style="margin-top:8px;width:auto;padding:8px 16px;">
+            <span class="btn-stack btn-stack--tight">
+              <span class="btn-line-en">📤 Share / 공유하기</span>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <div class="glass-panel form-card">
+        <p class="dokdo-label" id="cert-subtitle"></p>
+        <button type="button" id="btn-cert-continue" class="btn btn-gold">
+          <span class="btn-stack"><span class="btn-line-en">CONTINUE</span><span class="btn-line-ko">계속</span></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SURVEY (after Recruit)
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-survey" class="phase phase-survey" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge">SURVEY · 설문</p>
+        <p class="step-line">Before Soldier Stage / 병사 단계 전</p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-survey-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-survey-home" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="glass-panel form-card">
+        <div class="survey-disclaimer" role="note">
+          <p class="survey-disclaimer-en">Survey responses are not saved in this beta version.</p>
+          <p class="survey-disclaimer-ko">현재 베타 버전으로 설문 내용은 저장되지 않습니다.</p>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Age / 나이</p>
+          <div class="chip-row" id="survey-age">
+            <button type="button" class="chip" data-value="Teens">Teens / 10대</button>
+            <button type="button" class="chip" data-value="20s">20s / 20대</button>
+            <button type="button" class="chip" data-value="30s">30s / 30대</button>
+            <button type="button" class="chip" data-value="40s">40s / 40대</button>
+            <button type="button" class="chip" data-value="50s">50s / 50대</button>
+            <button type="button" class="chip" data-value="60s">60s / 60대</button>
+            <button type="button" class="chip" data-value="70+">70+ / 70대 이상</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Country / 국가</p>
+          <select id="survey-country" class="glass-input">
+            <option value="">Select… / 선택하세요</option>
+            <option value="Korea">Korea / 한국</option>
+            <option value="USA">USA / 미국</option>
+            <option value="Japan">Japan / 일본</option>
+            <option value="China">China / 중국</option>
+            <option value="Vietnam">Vietnam / 베트남</option>
+            <option value="Thailand">Thailand / 태국</option>
+            <option value="Philippines">Philippines / 필리핀</option>
+            <option value="Indonesia">Indonesia / 인도네시아</option>
+            <option value="India">India / 인도</option>
+            <option value="UK">UK / 영국</option>
+            <option value="Canada">Canada / 캐나다</option>
+            <option value="Australia">Australia / 호주</option>
+            <option value="Other">Other / 기타</option>
+          </select>
+          <input id="survey-country-other" class="glass-input" placeholder="If Other, type here / 직접 입력" hidden>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Learning Duration / 한국어 학습 기간</p>
+          <div class="chip-row" id="survey-duration">
+            <button type="button" class="chip" data-value="<1 year">&lt;1 year</button>
+            <button type="button" class="chip" data-value="1~3">1~3 yrs</button>
+            <button type="button" class="chip" data-value="3+">3+ yrs</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Preferred Theme / 선호 테마</p>
+          <div class="chip-row" id="survey-theme">
+            <button type="button" class="chip" data-value="Traditional">Traditional / 전통</button>
+            <button type="button" class="chip" data-value="Modern">Modern / 현대</button>
+            <button type="button" class="chip" data-value="Meme">Meme / 밈</button>
+            <button type="button" class="chip" data-value="K-drama">K-drama / 드라마</button>
+            <button type="button" class="chip" data-value="K-pop">K-pop / 케이팝</button>
+            <button type="button" class="chip" data-value="Travel">Travel / 여행</button>
+            <button type="button" class="chip" data-value="Food">Food / 음식</button>
+            <button type="button" class="chip" data-value="Beauty">Beauty / 뷰티</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Hardest Part / 가장 어려운 점</p>
+          <div class="chip-row" id="survey-hardest">
+            <button type="button" class="chip" data-value="Pronunciation">Pronunciation / 발음</button>
+            <button type="button" class="chip" data-value="Slang">Slang / 슬랭</button>
+            <button type="button" class="chip" data-value="Culture">Culture / 문화</button>
+            <button type="button" class="chip" data-value="Honorifics">Honorifics / 존댓말</button>
+            <button type="button" class="chip" data-value="Listening">Listening / 듣기</button>
+            <button type="button" class="chip" data-value="Grammar">Grammar / 문법</button>
+            <button type="button" class="chip" data-value="Reading">Reading / 읽기</button>
+            <button type="button" class="chip" data-value="Speaking">Speaking / 말하기</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Suggestions &amp; Feedback / 개선·제안사항</p>
+          <textarea id="survey-suggestions" class="glass-textarea" placeholder="Any features you'd like, or things to improve? / 원하는 기능이나 개선 사항을 자유롭게 적어주세요." rows="3"></textarea>
+        </div>
+
+        <div class="form-block">
+          <p class="form-label">Email (optional / 선택)</p>
+          <input type="email" id="survey-email" class="glass-input" placeholder="you@example.com" autocomplete="email" inputmode="email">
+          <p class="survey-notify-msg">We'll notify you when the full version launches. / 정식 출시 시 알림을 보내드립니다.</p>
+        </div>
+
+        <button type="button" id="btn-survey-continue" class="btn btn-gold">
+          <span class="btn-stack">
+            <span class="btn-line-en">CONTINUE TO SOLDIER STAGE</span>
+            <span class="btn-line-ko">병사 단계로 계속 / Soldier Stage</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SUBSCRIBE / UNLOCK  (after NCO — was Officer)
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-subscribe" class="phase phase-email" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge">UNLOCK · 잠금 해제</p>
+        <p class="step-line">Officer Stage &amp; Beyond / 위관 단계부터</p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-subscribe-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-subscribe-home" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="glass-panel form-card">
+        <div class="subscribe-free-notice">
+          <p class="subscribe-free-en">
+            K-PATCH is a <strong>free service</strong>. Your YouTube subscription &amp; like help us keep
+            creating and improving this content. Thank you for your support! 🙏
+          </p>
+          <p class="subscribe-free-ko">
+            K-PATCH는 <strong>무료로 제공되는 서비스</strong>입니다.<br>
+            여러분의 구독과 좋아요는 이 서비스를 제작하고 발전시키는 데 큰 힘이 됩니다.<br>
+            응원해 주셔서 감사합니다! 🙏
+          </p>
+        </div>
+
+        <a id="btn-youtube-link" href="https://youtube.com/@korean1min" target="_blank" rel="noopener noreferrer" class="btn btn-youtube">
+          <span class="btn-stack">
+            <span class="btn-line-en">▶ Subscribe on YouTube</span>
+            <span class="btn-line-ko">유튜브 구독하기</span>
+          </span>
+        </a>
+
+        <div id="subscribe-countdown-wrap" hidden style="text-align:center;padding:8px 0;">
+          <p id="subscribe-countdown-text" style="font-size:0.88rem;color:rgba(255,215,0,0.9);font-weight:700;"></p>
+        </div>
+
+        <button type="button" id="btn-subscribe-confirmed" class="btn btn-confirmed" disabled>
+          <span class="btn-stack">
+            <span class="btn-line-en">✅ I Subscribed &amp; Liked!</span>
+            <span class="btn-line-ko">구독·좋아요 완료! — 잠금 해제</span>
+          </span>
+        </button>
+
+        <button type="button" id="btn-subscribe-continue" class="btn btn-gold" disabled>
+          <span class="btn-stack">
+            <span class="btn-line-en">CONTINUE TO OFFICER STAGE</span>
+            <span class="btn-line-ko">위관 단계로 계속 / Officer Stage</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ENDING
+    ═══════════════════════════════════════════════ -->
+    <section id="phase-ending" class="phase phase-result" hidden>
+      <header class="quiz-top glass-panel">
+        <p class="rank-badge">ENDING · 엔딩</p>
+        <p class="step-line">Mission Complete / 임무 완료</p>
+        <div class="quiz-actions quiz-actions--split">
+          <button type="button" id="btn-ending-back" class="btn btn-outline btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">BACK</span><span class="btn-line-ko">뒤로</span></span>
+          </button>
+          <button type="button" id="btn-ending-home" class="btn btn-gold btn-small">
+            <span class="btn-stack btn-stack--tight"><span class="btn-line-en">HOME</span><span class="btn-line-ko">홈</span></span>
+          </button>
+        </div>
+      </header>
+      <div class="glass-panel form-card">
+        <p class="dokdo-label">
+          You cleared the full K-PATCH mission. See you at launch!<br>
+          전체 임무를 완료했습니다. 정식 출시 때 다시 만나요!
+        </p>
+      </div>
+    </section>
+
+    <div id="toast" class="toast glass-panel" hidden role="status"></div>
+
+  <!-- ── Hidden Premium Share Card (captured by html2canvas) ── -->
+  <div id="share-card-hidden" style="
+    position:fixed; left:-9999px; top:-9999px;
+    width:360px; min-height:240px;
+    background: linear-gradient(145deg, #0a0800, #1a1200, #0a0800);
+    border: 2px solid #ffd700;
+    border-radius: 18px;
+    padding: 24px 22px 20px;
+    font-family: system-ui, 'Segoe UI', sans-serif;
+    box-shadow: 0 0 40px rgba(255,215,0,0.25), inset 0 0 60px rgba(255,215,0,0.04);
+    overflow: hidden;
+  " aria-hidden="true">
+    <!-- Gold top bar -->
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#ffd700,transparent);"></div>
+    <!-- Eyebrow -->
+    <div style="font-size:0.6rem;letter-spacing:0.3em;color:rgba(255,215,0,0.6);margin-bottom:10px;text-align:center;">K — P A T C H · CERTIFICATION</div>
+    <!-- Rank -->
+    <div id="sc-rank" style="font-size:2.8rem;font-weight:900;letter-spacing:0.06em;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.4);text-align:center;line-height:1;">P8</div>
+    <!-- Stage -->
+    <div id="sc-stage" style="font-size:0.85rem;font-weight:800;color:rgba(255,255,255,0.9);text-align:center;margin-top:6px;letter-spacing:0.08em;">RECRUIT · 훈련병</div>
+    <!-- Divider -->
+    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,0,0.35),transparent);margin:14px 0;"></div>
+    <!-- Stats -->
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:rgba(255,255,255,0.55);letter-spacing:0.06em;">STAGE QUIZ</span>
+        <span id="sc-stage-score" style="font-size:0.85rem;font-weight:800;color:#fff;">0 / 10</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:rgba(255,255,255,0.55);letter-spacing:0.06em;">ACCURACY</span>
+        <span id="sc-acc" style="font-size:0.85rem;font-weight:800;color:#ffd700;">0%</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:rgba(255,255,255,0.55);letter-spacing:0.06em;">PRONUNCIATION</span>
+        <span id="sc-pron" style="font-size:0.85rem;font-weight:800;color:#ffd700;">—</span>
+      </div>
+    </div>
+    <!-- Divider -->
+    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,0,0.35),transparent);margin:14px 0;"></div>
+    <!-- URL + tagline -->
+    <div style="text-align:center;">
+      <div style="font-size:0.68rem;color:rgba(255,215,0,0.7);letter-spacing:0.1em;margin-bottom:4px;">kpatch.netlify.app</div>
+      <div style="font-size:0.6rem;color:rgba(255,255,255,0.4);letter-spacing:0.06em;">Train your reaction · Learn real Korean</div>
+    </div>
+    <!-- Gold bottom bar -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#ffd700,transparent);"></div>
+  </div>
+  </main>
+
+  <!-- RESUME MODAL -->
+  <div id="modal-resume" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-resume-title">
+    <div class="modal-card glass-panel">
+      <p id="modal-resume-title" class="modal-title">Continue your mission? / 이어서 진행할까요?</p>
+      <p class="dokdo-label modal-resume-sub">마지막 위치에서 이어하기 / Resume from last position</p>
+      <button type="button" id="btn-modal-resume" class="btn btn-gold">
+        <span class="btn-stack"><span class="btn-line-en">RESUME</span><span class="btn-line-ko">이어하기</span></span>
+      </button>
+      <button type="button" id="btn-modal-restart" class="btn btn-outline">
+        <span class="btn-stack"><span class="btn-line-en">RESTART</span><span class="btn-line-ko">처음부터</span></span>
+      </button>
+      <button type="button" id="btn-modal-cancel" class="btn btn-outline">
+        <span class="btn-stack"><span class="btn-line-en">CANCEL</span><span class="btn-line-ko">취소</span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="confetti-root" class="confetti-root" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
