@@ -597,7 +597,7 @@
     <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,0,0.35),transparent);margin:14px 0;"></div>
     <!-- URL + tagline -->
     <div style="text-align:center;">
-      <div style="font-size:0.68rem;color:rgba(255,215,0,0.7);letter-spacing:0.1em;margin-bottom:4px;">kpatch.netlify.app</div>
+      <div style="font-size:0.68rem;color:rgba(255,215,0,0.7);letter-spacing:0.1em;margin-bottom:4px;">k-patch.pages.dev</div>
       <div style="font-size:0.6rem;color:rgba(255,255,255,0.4);letter-spacing:0.06em;">Train your reaction · Learn real Korean</div>
     </div>
     <!-- Gold bottom bar -->
@@ -619,6 +619,33 @@
       <button type="button" id="btn-modal-cancel" class="btn btn-outline">
         <span class="btn-stack"><span class="btn-line-en">CANCEL</span><span class="btn-line-ko">취소</span></span>
       </button>
+    </div>
+  </div>
+
+  <!-- SHARE MODAL (desktop fallback) -->
+  <div id="modal-share" class="modal" hidden role="dialog" aria-modal="true">
+    <div class="modal-card glass-panel" style="gap:14px;max-width:340px">
+      <p style="font-size:0.9rem;font-weight:900;color:var(--gold);letter-spacing:0.08em;text-align:center;">🎖️ SHARE / 공유하기</p>
+      <p id="share-modal-text" style="font-size:0.72rem;color:rgba(255,255,255,0.65);line-height:1.45;text-align:center;word-break:break-all;"></p>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+        <button type="button" id="btn-share-download" class="btn btn-gold" style="width:100%">
+          <span class="btn-stack"><span class="btn-line-en">⬇ Download Card</span><span class="btn-line-ko">인증카드 저장</span></span>
+        </button>
+        <button type="button" id="btn-share-copy" class="btn btn-outline" style="width:100%">
+          <span class="btn-stack"><span class="btn-line-en">🔗 Copy Link</span><span class="btn-line-ko">링크 복사</span></span>
+        </button>
+        <div style="display:flex;gap:10px;width:100%">
+          <button type="button" id="btn-share-x" class="btn btn-outline" style="flex:1;background:rgba(0,0,0,0.6);">
+            <span class="btn-stack"><span class="btn-line-en">𝕏 Twitter</span></span>
+          </button>
+          <button type="button" id="btn-share-facebook" class="btn btn-outline" style="flex:1;background:rgba(24,119,242,0.25);">
+            <span class="btn-stack"><span class="btn-line-en">f Facebook</span></span>
+          </button>
+        </div>
+        <button type="button" id="btn-share-close" class="btn btn-outline" style="width:100%;opacity:0.6">
+          <span class="btn-stack"><span class="btn-line-en">CLOSE</span><span class="btn-line-ko">닫기</span></span>
+        </button>
+      </div>
     </div>
   </div>
 

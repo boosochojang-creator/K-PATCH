@@ -1507,7 +1507,7 @@ function showPronFinal() {
 
   if (avg >= 60) {
     triggerConfetti();
-    AudioManager.playSfxOnce('sfx_correct');
+    AudioManager.playSfxOnce('sfx_stage_clear');
   } else {
     AudioManager.playSfxOnce('sfx_fail');
   }
@@ -1903,6 +1903,9 @@ function wireUI() {
 
   $('btn-survey-back')?.addEventListener('click', () => {
     if (transitionLock) return;
+    // Survey is always the checkpoint after Recruit (stage 0).
+    // Reset to stage 0 so BACK always shows Recruit cert, not the next stage's cert.
+    state.currentStage = 0;
     renderCert();
   });
   $('btn-survey-home')?.addEventListener('click', () => {
@@ -2093,6 +2096,70 @@ async function boot() {
   }
 
   // ── Cert share button ──
+  function showShareModal(blob, shareText) {
+    const modal = $('modal-share');
+    if (!modal) return;
+
+    // Populate text preview
+    const textEl = $('share-modal-text');
+    if (textEl) textEl.textContent = shareText;
+
+    // Download button
+    const dlBtn = $('btn-share-download');
+    if (dlBtn) {
+      dlBtn.onclick = () => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'kpatch-cert.png';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        toast('✅ 인증카드 저장됨! / Card downloaded!');
+      };
+    }
+
+    // Copy link button
+    const copyBtn = $('btn-share-copy');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        const url = 'https://k-patch.pages.dev';
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(`${shareText}\n${url}`)
+            .then(() => toast('✅ 복사됨! / Copied!'))
+            .catch(() => toast(url));
+        } else {
+          toast(url);
+        }
+      };
+    }
+
+    // X (Twitter) button
+    const xBtn = $('btn-share-x');
+    if (xBtn) {
+      xBtn.onclick = () => {
+        const url = encodeURIComponent('https://k-patch.pages.dev');
+        const text = encodeURIComponent(shareText);
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+      };
+    }
+
+    // Facebook button
+    const fbBtn = $('btn-share-facebook');
+    if (fbBtn) {
+      fbBtn.onclick = () => {
+        const url = encodeURIComponent('https://k-patch.pages.dev');
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+      };
+    }
+
+    // Close button
+    const closeBtn = $('btn-share-close');
+    if (closeBtn) closeBtn.onclick = () => { modal.hidden = true; };
+    modal.onclick = (e) => { if (e.target === modal) modal.hidden = true; };
+
+    modal.hidden = false;
+  }
+
   $('btn-cert-share')?.addEventListener('click', async () => {
     const rank = $('cert-rank')?.textContent || '';
     const stageLabel = $('cert-stage-label')?.textContent || '';
@@ -2102,7 +2169,7 @@ async function boot() {
     const stageTotal = $('cert-stage-total')?.textContent || '10';
     const acc = $('cert-acc')?.textContent || '0';
     const pron = $('cert-pron-score')?.textContent || '—';
-    const shareText = `🎖️ K-PATCH ${stageEn}/${stageLabel} 완료! 정확도 ${acc}% | 발음 ${pron} 👉 https://kpatch.netlify.app`;
+    const shareText = `🎖️ K-PATCH ${stageEn}/${stageLabel} 완료! 정확도 ${acc}% | 발음 ${pron} 👉 https://k-patch.pages.dev`;
 
     // Update hidden premium share card
     const shareCard = document.getElementById('share-card-hidden');
@@ -2113,7 +2180,6 @@ async function boot() {
       if (el('sc-stage-score')) el('sc-stage-score').textContent = `${stageCorrect} / ${stageTotal}`;
       if (el('sc-acc')) el('sc-acc').textContent = `${acc}%`;
       if (el('sc-pron')) el('sc-pron').textContent = pron;
-      // Random stage image as background
       const stageData = stageByIndex(state.currentStage);
       const imgPool = IMAGE_POOLS[stageData.imagePoolKey] || IMAGE_POOLS.recruit;
       const randomImg = imgPool[Math.floor(Math.random() * imgPool.length)];
@@ -2126,58 +2192,43 @@ async function boot() {
     }
 
     // Capture hidden premium card with html2canvas
+    let capturedBlob = null;
     if (shareCard && typeof window.html2canvas === 'function') {
       try {
         toast('🎖️ 카드 생성 중… / Creating card…');
         shareCard.style.left = '-500px';
         shareCard.style.top = '0px';
         const canvas = await window.html2canvas(shareCard, {
-          useCORS: true,
-          backgroundColor: '#0a0800',
-          scale: 2,
-          logging: false,
+          useCORS: true, backgroundColor: '#0a0800', scale: 2, logging: false,
         });
         shareCard.style.left = '-9999px';
         shareCard.style.top = '-9999px';
-        canvas.toBlob(async (blob) => {
-          if (!blob) return;
-          const file = new File([blob], 'kpatch-cert.png', { type: 'image/png' });
-          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({ files: [file], title: `K-PATCH ${rank} ${stageLabel}`, text: shareText });
-              return;
-            } catch (_) {}
-          }
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'kpatch-cert.png';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast('✅ 인증카드 저장됨! / Card downloaded!');
-        }, 'image/png');
-        return;
+        capturedBlob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
       } catch (_) {
         shareCard.style.left = '-9999px';
         shareCard.style.top = '-9999px';
       }
     }
 
-    // Text fallback
-    if (navigator.share) {
+    // Mobile: try native Web Share API
+    if (capturedBlob && navigator.share && navigator.canShare) {
+      const file = new File([capturedBlob], 'kpatch-cert.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: `K-PATCH ${rank} ${stageLabel}`, text: shareText });
+          return;
+        } catch (_) {}
+      }
+    }
+    if (!capturedBlob && navigator.share) {
       try {
-        await navigator.share({ title: `K-PATCH ${rank} ${stageLabel}`, text: shareText, url: 'https://kpatch.netlify.app' });
+        await navigator.share({ title: `K-PATCH ${rank} ${stageLabel}`, text: shareText, url: 'https://k-patch.pages.dev' });
         return;
       } catch (_) {}
     }
-    try {
-      await navigator.clipboard.writeText(shareText);
-      toast('✅ 공유 내용 복사됨! / Copied!');
-    } catch (_) {
-      toast('kpatch.netlify.app');
-    }
+
+    // Desktop fallback: show custom share modal
+    showShareModal(capturedBlob, shareText);
   });
 
   const v = $('hero-video');
