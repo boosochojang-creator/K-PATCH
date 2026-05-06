@@ -2022,6 +2022,12 @@ function wireUI() {
     if (txt) txt.textContent = '유튜브 구독 후 돌아오세요! / Come back after subscribing!';
   });
 
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkYoutubeSubscribeTimer();
+    }
+  });
+
   // ── Subscribe: confirmed button unlocks continue ──
   $('btn-subscribe-confirmed')?.addEventListener('click', () => {
     if (transitionLock) return;
